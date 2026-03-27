@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard | Controle de Qualidade</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body class="dashboard-body">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="logo-area">
+          <div class="logo-icon">CA</div>
+          <div>
+            <h2>Controle</h2>
+            <span>Atividades</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="#" class="nav-link active">Dashboard</a>
+          <a href="#" class="nav-link">Atividades</a>
+          <a href="#" class="nav-link">Indicadores</a>
+          <a href="#" class="nav-link">Prazos</a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button id="logoutBtn" class="btn btn-outline btn-full">Sair</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div>
+          <h1>Dashboard de Atividades</h1>
+          <p id="boasVindas">Bem-vindo</p>
+        </div>
+
+        <div class="topbar-actions">
+          <button id="abrirModalBtn" class="btn btn-primary">+ Nova atividade</button>
+        </div>
+      </header>
+
+      <section class="cards-grid">
+        <article class="stat-card">
+          <span class="stat-label">Total</span>
+          <strong id="cardTotal">0</strong>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-label">Pendentes</span>
+          <strong id="cardPendentes">0</strong>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-label">Em andamento</span>
+          <strong id="cardAndamento">0</strong>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-label">Concluídas</span>
+          <strong id="cardConcluidas">0</strong>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Atividades cadastradas</h2>
+            <p>Visão geral das tarefas do sistema</p>
+          </div>
+          <button id="recarregarBtn" class="btn btn-outline">Atualizar</button>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <tr>
+                <th>Título</th>
+                <th>Descrição</th>
+                <th>Prioridade</th>
+                <th>Status</th>
+                <th>Criação</th>
+                <th>Prazo</th>
+                <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaAtividades">
+              <tr>
+                <td colspan="5" class="empty-state">Carregando atividades.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Nova atividade</h3>
+        <button id="fecharModalBtn" class="modal-close">×</button>
+      </div>
+
+      <form id="atividadeForm" class="form">
+        <div class="form-grid">
+          <div class="input-group">
+            <label for="titulo">Título</label>
+            <input type="text" id="titulo" placeholder="Digite o título da atividade" required />
+          </div>
+
+          <div class="input-group">
+            <label for="prioridade">Prioridade</label>
+            <select id="prioridade">
+              <option value="">Selecione</option>
+              <option value="baixa">Baixa</option>
+              <option value="média">Média</option>
+              <option value="alta">Alta</option>
+              <option value="crítica">Crítica</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="status">Status</label>
+            <select id="status">
+              <option value="">Selecione</option>
+              <option value="pendente">Pendente</option>
+              <option value="em andamento">Em andamento</option>
+              <option value="concluída">Concluída</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="prazo">Prazo</label>
+            <input type="date" id="prazo" />
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="descricao">Descrição</label>
+          <textarea id="descricao" rows="4" placeholder="Descreva a atividade"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelarModalBtn" class="btn btn-outline">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar atividade</button>
+        </div>
+
+        <p id="atividadeMensagem" class="form-message"></p>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="./js/dashboard.js"></script>
+</body>
+</html>
