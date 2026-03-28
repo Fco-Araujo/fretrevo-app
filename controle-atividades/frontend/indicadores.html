@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Indicadores | Controle de Atividades</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dashboard-body">
+  <div class="app-layout app-layout-fixed">
+    <aside class="sidebar sidebar-fixed">
+      <div class="sidebar-top">
+        <div class="logo-area">
+          <div class="logo-icon">CA</div>
+          <div>
+            <h2>Controle</h2>
+            <span>Atividades</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="./dashboard.html" class="nav-link">Dashboard</a>
+          <a href="#" class="nav-link">Atividades</a>
+          <a href="./indicadores.html" class="nav-link active">Indicadores</a>
+          <a href="#" class="nav-link">Prazos</a>
+          <a href="./usuarios.html" id="menuUsuariosLink" class="nav-link hidden">Usuários</a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button id="logoutBtn" class="btn btn-outline btn-full">Sair</button>
+      </div>
+    </aside>
+
+    <main class="content content-scroll">
+      <section class="panel filtros-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Filtros</h2>
+            <p>Refine os indicadores</p>
+          </div>
+        </div>
+
+        <div class="filtros-grid">
+          <div class="input-group">
+            <label for="filtroStatus">Status</label>
+            <select id="filtroStatus">
+              <option value="">Todos</option>
+              <option value="pendente">Pendente</option>
+              <option value="em andamento">Em andamento</option>
+              <option value="concluída">Concluída</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="filtroPrioridade">Prioridade</label>
+            <select id="filtroPrioridade">
+              <option value="">Todas</option>
+              <option value="baixa">Baixa</option>
+              <option value="média">Média</option>
+              <option value="alta">Alta</option>
+              <option value="crítica">Crítica</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="filtroCriador">Criado por</label>
+            <select id="filtroCriador">
+              <option value="">Todos</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="filtroPeriodo">Período</label>
+            <select id="filtroPeriodo">
+              <option value="">Tudo</option>
+              <option value="7">Últimos 7 dias</option>
+              <option value="30">Últimos 30 dias</option>
+              <option value="90">Últimos 90 dias</option>
+            </select>
+          </div>
+
+          <div class="filtros-acoes">
+            <button id="btnAplicarFiltros" class="btn btn-primary" type="button">Aplicar</button>
+            <button id="btnLimparFiltros" class="btn btn-outline" type="button">Limpar</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="cards-grid indicadores-cards">
+        <article class="stat-card stat-card-indicador">
+          <span class="stat-label">% Concluídas</span>
+          <strong id="cardPctConcluidas">0%</strong>
+          <span id="cardQtdConcluidas" class="stat-aux">0 atividades concluídas</span>
+          <span id="cardTendenciaConcluidas" class="card-trend">-</span>
+        </article>
+
+        <article class="stat-card stat-card-indicador">
+          <span class="stat-label">% Pendentes</span>
+          <strong id="cardPctPendentes">0%</strong>
+          <span id="cardQtdPendentes" class="stat-aux">0 atividades pendentes</span>
+          <span class="card-trend neutro">Em aberto</span>
+        </article>
+
+        <article class="stat-card stat-card-indicador">
+          <span class="stat-label">% No prazo</span>
+          <strong id="cardPctNoPrazo">0%</strong>
+          <span id="cardQtdNoPrazo" class="stat-aux">0 atividades no prazo</span>
+          <span id="cardTendenciaPrazo" class="card-trend">-</span>
+        </article>
+
+        <article class="stat-card stat-card-indicador">
+          <span class="stat-label">Atrasadas</span>
+          <strong id="cardAtrasadas">0</strong>
+          <span id="cardQtdAtrasadas" class="stat-aux">0 atividades atrasadas</span>
+          <span class="card-trend alerta">Exigem atenção</span>
+        </article>
+      </section>
+
+      <section class="indicadores-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Evolução de atividades</h2>
+              <p>Criadas por mês</p>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="graficoLinha"></canvas>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Status das atividades</h2>
+              <p>Distribuição atual</p>
+            </div>
+          </div>
+          <div class="chart-box rosca-box">
+            <canvas id="graficoRosca"></canvas>
+          </div>
+        </article>
+      </section>
+
+      <section class="indicadores-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Atividades por prioridade</h2>
+              <p>Distribuição por criticidade</p>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="graficoPrioridade"></canvas>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Usuários com mais atrasos</h2>
+              <p>Top atrasos por criador</p>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="graficoAtrasosUsuarios"></canvas>
+          </div>
+        </article>
+      </section>
+
+      <section class="indicadores-grid rankings-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Ranking de produtividade</h2>
+              <p>Quem mais cria/faz atividades</p>
+            </div>
+          </div>
+          <div id="rankingProdutividade" class="ranking-lista">
+            <div class="empty-state-bloco">Carregando ranking.</div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Ranking de atrasos</h2>
+              <p>Quem mais tem atividades atrasadas</p>
+            </div>
+          </div>
+          <div id="rankingAtrasos" class="ranking-lista">
+            <div class="empty-state-bloco">Carregando ranking.</div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./js/indicadores.js"></script>
+</body>
+</html>
