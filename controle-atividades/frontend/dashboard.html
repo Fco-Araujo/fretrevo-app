@@ -3,29 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard | Controle de Qualidade</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Dashboard | Controle de Atividades</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
   <link rel="stylesheet" href="./css/style.css" />
 </head>
 <body class="dashboard-body">
-  <div class="app-layout">
-    <aside class="sidebar">
+  <div class="app-layout app-layout-fixed">
+    <aside class="sidebar sidebar-fixed">
       <div class="sidebar-top">
         <div class="logo-area">
           <div class="logo-icon">CA</div>
-          <div>
-            <h2>Controle</h2>
-            <span>Atividades</span>
-          </div>
+          <div class="sidebar-user-box">
+          <strong id="boasVindas">Usuário</strong>
         </div>
+      </div>
 
         <nav class="sidebar-nav">
-          <a href="./dashboard.html" class="nav-link active">Dashboard</a>
-          <a href="#" class="nav-link">Atividades</a>
+          <a href="./dashboard.html" class="nav-link active">Cadastrar atividades</a>
           <a href="./indicadores.html" class="nav-link">Indicadores</a>
-          <a href="#" class="nav-link">Prazos</a>
+          <a href="./prazos.html" class="nav-link">Atrasos</a>
           <a href="./usuarios.html" id="menuUsuariosLink" class="nav-link hidden">Usuários</a>
         </nav>
       </div>
@@ -35,19 +36,8 @@
       </div>
     </aside>
 
-    <main class="content">
-      <header class="topbar">
-        <div>
-          <h1>Dashboard de Atividades</h1>
-          <p id="boasVindas">Bem-vindo</p>
-        </div>
-
-        <div class="topbar-actions">
-          <button id="abrirModalBtn" class="btn btn-primary">+ Nova atividade</button>
-        </div>
-      </header>
-
-      <section class="cards-grid">
+    <main class="content content-scroll">
+      <section class="cards-grid cards-grid-dashboard">
         <article class="stat-card">
           <span class="stat-label">Total</span>
           <strong id="cardTotal">0</strong>
@@ -64,18 +54,78 @@
         </article>
 
         <article class="stat-card">
+          <span class="stat-label">Atrasadas</span>
+          <strong id="cardAtrasadas">0</strong>
+        </article>
+
+        <article class="stat-card">
           <span class="stat-label">Concluídas</span>
           <strong id="cardConcluidas">0</strong>
         </article>
       </section>
 
-      <section class="panel">
+      <section class="panel filtros-panel">
         <div class="panel-header">
+          <div>
+            <h2>Filtros</h2>
+            <p>Refine a visualização das atividades</p>
+          </div>
+        </div>
+
+        <div class="filtros-grid dashboard-filtros-grid">
+          <div class="input-group">
+            <label for="filtroBusca">Buscar atividade</label>
+            <input type="text" id="filtroBusca" placeholder="Digite título ou descrição" />
+          </div>
+
+          <div class="input-group">
+            <label for="filtroPrioridade">Prioridade</label>
+            <select id="filtroPrioridade">
+              <option value="">Todas</option>
+              <option value="baixa">Baixa</option>
+              <option value="média">Média</option>
+              <option value="alta">Alta</option>
+              <option value="crítica">Crítica</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="filtroStatus">Status</label>
+            <select id="filtroStatus">
+              <option value="">Todos</option>
+              <option value="pendente">Pendente</option>
+              <option value="em andamento">Em andamento</option>
+              <option value="atrasado">Atrasado</option>
+              <option value="concluída">Concluída</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="filtroPrazo">Prazo</label>
+            <select id="filtroPrazo">
+              <option value="">Todos</option>
+              <option value="hoje">Vence hoje</option>
+              <option value="sem-prazo">Sem prazo</option>
+              <option value="vencidas">Vencidas</option>
+              <option value="proximas">Próximas</option>
+            </select>
+          </div>
+
+          <div class="filtros-acoes">
+            <button id="limparFiltrosBtn" class="btn btn-outline">Limpar</button>
+            <button id="recarregarBtn" class="btn btn-outline">Atualizar</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header panel-header-table">
           <div>
             <h2>Atividades cadastradas</h2>
             <p>Visão geral das tarefas do sistema</p>
           </div>
-          <button id="recarregarBtn" class="btn btn-outline">Atualizar</button>
+
+          <button id="abrirModalBtn" class="btn btn-primary">+ Nova atividade</button>
         </div>
 
         <div class="table-wrapper">
@@ -83,7 +133,7 @@
             <thead>
               <tr>
                 <th>Atividade</th>
-                <th>Responsavel</th>
+                <th>Responsável</th>
                 <th>Descrição</th>
                 <th>Prioridade</th>
                 <th>Status</th>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prazos | Controle de Atividades</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body class="dashboard-body prazos-body">
+  <div class="app-layout app-layout-fixed">
+    <aside class="sidebar sidebar-fixed">
+      <div class="sidebar-top">
+        <div class="logo-area">
+          <div class="logo-icon">CA</div>
+          <div class="sidebar-user-box">
+          <strong id="boasVindas">Usuário</strong>
+        </div>
+        </div>
+
+
+        <nav class="sidebar-nav">
+          <a href="./dashboard.html" class="nav-link">Cadastrar atividades</a>
+          <a href="./indicadores.html" class="nav-link">Indicadores</a>
+          <a href="./prazos.html" class="nav-link active">Atrasos</a>
+          <a href="./usuarios.html" id="menuUsuariosLink" class="nav-link hidden">Usuários</a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button id="logoutBtn" class="btn btn-outline btn-full">Sair</button>
+      </div>
+    </aside>
+
+    <main class="content content-scroll">
+      <section class="prazos-hero">
+        <div>
+          <div class="prazos-alerta">
+            <span class="alerta-ping"></span>
+            <span class="alerta-icone">⚠</span>
+            <span>Acompanhamento de vencimentos</span>
+          </div>
+          <h1>Prazos e alertas</h1>
+          <p>Monitore atrasos e atividades que estão próximas do vencimento.</p>
+        </div>
+      </section>
+
+      <section class="cards-grid cards-grid-prazos">
+        <article class="stat-card">
+          <span class="stat-label">Total</span>
+          <strong id="cardTotalComPrazo">0</strong>
+        </article>
+
+        <article class="stat-card card-alerta">
+          <span class="stat-label">Atrasadas</span>
+          <strong id="cardAtrasadas">0</strong>
+          <span class="stat-aux" id="textoAtrasadas">Sem atividades em atraso</span>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-label">Vence em até 7 dias</span>
+          <strong id="cardProximas">0</strong>
+          <span class="stat-aux" id="textoProximas">Nenhum vencimento próximo</span>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-label">Vence hoje</span>
+          <strong id="cardHoje">0</strong>
+        </article>
+      </section>
+
+      <section class="panel filtros-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Filtros</h2>
+            <p>Refine os resultados das tabelas e dos gráficos</p>
+          </div>
+        </div>
+
+        <div class="filtros-grid prazos-filtros-grid">
+          <div class="input-group">
+            <label for="filtroBuscaPrazo">Buscar</label>
+            <input
+              type="text"
+              id="filtroBuscaPrazo"
+              placeholder="Digite título, descrição ou responsável"
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="filtroResponsavelPrazo">Responsável</label>
+            <select id="filtroResponsavelPrazo">
+              <option value="">Todos</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="filtroPrioridadePrazo">Prioridade</label>
+            <select id="filtroPrioridadePrazo">
+              <option value="">Todas</option>
+              <option value="baixa">Baixa</option>
+              <option value="média">Média</option>
+              <option value="alta">Alta</option>
+              <option value="crítica">Crítica</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="filtroOrigemPrazo">Faixa</label>
+            <select id="filtroOrigemPrazo">
+              <option value="">Todas</option>
+              <option value="atrasadas">Atrasadas</option>
+              <option value="proximas">Próximas 7 dias</option>
+              <option value="hoje">Vence hoje</option>
+            </select>
+          </div>
+
+          <div class="filtros-acoes">
+            <button id="limparFiltrosBtn" class="btn btn-outline">Limpar</button>
+            <button id="recarregarBtn" class="btn btn-outline">Atualizar</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="indicadores-grid prazos-graficos-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Status de prazo</h2>
+              <p>Distribuição entre atrasadas, hoje, próximas e futuras</p>
+            </div>
+          </div>
+          <div class="prazos-chart-card">
+            <div class="bar-chart" id="graficoStatusPrazo"></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Maiores atrasos</h2>
+              <p>Top atividades com mais dias vencidos</p>
+            </div>
+          </div>
+          <div id="rankingAtrasos" class="ranking-lista">
+            <p class="empty-state-bloco">Carregando ranking.</p>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Atividades em atraso</h2>
+            <p>Itens vencidos e ainda não concluídos</p>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Descrição</th>
+                <th>Responsável</th>
+                <th>Prazo</th>
+                <th>Dias em atraso</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaAtrasos">
+              <tr>
+                <td colspan="4" class="empty-state">Carregando dados.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Vencendo nos próximos 7 dias</h2>
+            <p>Atividades próximas do prazo final</p>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Descrição</th>
+                <th>Responsável</th>
+                <th>Prazo</th>
+                <th>Dias restantes</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaProximas">
+              <tr>
+                <td colspan="4" class="empty-state">Carregando dados.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./js/prazos.js"></script>
+</body>
+</html>

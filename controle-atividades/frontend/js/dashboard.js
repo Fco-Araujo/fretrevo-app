@@ -10,12 +10,21 @@ if (!token) {
 const menuUsuariosLink = document.getElementById("menuUsuariosLink");
 const boasVindas = document.getElementById("boasVindas");
 const tabelaAtividades = document.getElementById("tabelaAtividades");
+
 const cardTotal = document.getElementById("cardTotal");
 const cardPendentes = document.getElementById("cardPendentes");
 const cardAndamento = document.getElementById("cardAndamento");
+const cardAtrasadas = document.getElementById("cardAtrasadas");
 const cardConcluidas = document.getElementById("cardConcluidas");
+
 const logoutBtn = document.getElementById("logoutBtn");
 const recarregarBtn = document.getElementById("recarregarBtn");
+const limparFiltrosBtn = document.getElementById("limparFiltrosBtn");
+
+const filtroBusca = document.getElementById("filtroBusca");
+const filtroPrioridade = document.getElementById("filtroPrioridade");
+const filtroStatus = document.getElementById("filtroStatus");
+const filtroPrazo = document.getElementById("filtroPrazo");
 
 const abrirModalBtn = document.getElementById("abrirModalBtn");
 const fecharModalBtn = document.getElementById("fecharModalBtn");
@@ -38,7 +47,7 @@ let atividadesCache = [];
 let modoEdicao = false;
 let atividadeEditandoId = null;
 
-boasVindas.textContent = `Bem-vindo, ${usuario?.nome || "usuário"}`;
+boasVindas.textContent = usuario?.nome || "Usuário";
 
 if (usuario?.perfil === "admin" && menuUsuariosLink) {
   menuUsuariosLink.classList.remove("hidden");
@@ -65,6 +74,12 @@ modalOverlay.addEventListener("click", (event) => {
 });
 
 recarregarBtn.addEventListener("click", carregarAtividades);
+limparFiltrosBtn.addEventListener("click", limparFiltros);
+
+[filtroBusca, filtroPrioridade, filtroStatus, filtroPrazo].forEach((elemento) => {
+  elemento.addEventListener("input", aplicarFiltros);
+  elemento.addEventListener("change", aplicarFiltros);
+});
 
 atividadeForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -94,7 +109,7 @@ atividadeForm.addEventListener("submit", async (event) => {
       method,
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify(payload)
     });
@@ -134,7 +149,7 @@ function prepararModalEdicao(atividade) {
   tituloInput.value = atividade.titulo || "";
   descricaoInput.value = atividade.descricao || "";
   prioridadeInput.value = atividade.prioridade || "";
-  statusInput.value = atividade.status || "";
+  statusInput.value = normalizarStatusOriginal(atividade.status);
   prazoInput.value = formatarDataParaInput(atividade.prazo);
 
   modalOverlay.classList.remove("hidden");
@@ -175,32 +190,99 @@ function formatarDataParaInput(data) {
   return `${ano}-${mes}-${dia}`;
 }
 
-function criarBadge(texto, tipo) {
-  const classe = texto
+function normalizarTexto(texto = "") {
+  return String(texto)
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "-");
+    .trim();
+}
 
-  return `<span class="badge badge-${classe}">${tipo || texto}</span>`;
+function obterHojeSemHora() {
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  return hoje;
+}
+
+function obterDataSemHora(data) {
+  if (!data) return null;
+
+  const dataConvertida = new Date(data);
+
+  if (Number.isNaN(dataConvertida.getTime())) return null;
+
+  dataConvertida.setHours(0, 0, 0, 0);
+  return dataConvertida;
+}
+
+function statusEfetivo(atividade) {
+  const statusOriginal = normalizarTexto(atividade.status);
+  const prazo = obterDataSemHora(atividade.prazo);
+  const hoje = obterHojeSemHora();
+
+  const concluida =
+    statusOriginal === "concluida" ||
+    statusOriginal === "concluída";
+
+  if (!concluida && prazo && prazo < hoje) {
+    if (statusOriginal === "pendente" || statusOriginal === "em andamento") {
+      return "atrasado";
+    }
+  }
+
+  if (statusOriginal === "concluida" || statusOriginal === "concluída") {
+    return "concluída";
+  }
+
+  if (statusOriginal === "em andamento") {
+    return "em andamento";
+  }
+
+  if (statusOriginal === "pendente") {
+    return "pendente";
+  }
+
+  return atividade.status || "-";
+}
+
+function normalizarStatusOriginal(status) {
+  const texto = normalizarTexto(status);
+
+  if (texto === "concluida" || texto === "concluída") return "concluída";
+  if (texto === "em andamento") return "em andamento";
+  if (texto === "pendente") return "pendente";
+
+  return "";
+}
+
+function criarBadge(texto, rotulo = texto) {
+  const classe = normalizarTexto(texto).replace(/\s+/g, "-");
+  return `<span class="badge badge-${classe}">${rotulo}</span>`;
 }
 
 function atualizarCards(atividades) {
   const total = atividades.length;
+
   const pendentes = atividades.filter(
-    (item) => (item.status || "").toLowerCase() === "pendente"
+    (item) => statusEfetivo(item) === "pendente"
   ).length;
+
   const andamento = atividades.filter(
-    (item) => (item.status || "").toLowerCase() === "em andamento"
+    (item) => statusEfetivo(item) === "em andamento"
   ).length;
-  const concluidas = atividades.filter((item) => {
-    const status = (item.status || "").toLowerCase();
-    return status === "concluída" || status === "concluida";
-  }).length;
+
+  const atrasadas = atividades.filter(
+    (item) => statusEfetivo(item) === "atrasado"
+  ).length;
+
+  const concluidas = atividades.filter(
+    (item) => statusEfetivo(item) === "concluída"
+  ).length;
 
   cardTotal.textContent = total;
   cardPendentes.textContent = pendentes;
   cardAndamento.textContent = andamento;
+  cardAtrasadas.textContent = atrasadas;
   cardConcluidas.textContent = concluidas;
 }
 
@@ -208,7 +290,7 @@ function renderizarTabela(atividades) {
   if (!atividades.length) {
     tabelaAtividades.innerHTML = `
       <tr>
-        <td colspan="8" class="empty-state">Nenhuma atividade cadastrada.</td>
+        <td colspan="8" class="empty-state">Nenhuma atividade encontrada.</td>
       </tr>
     `;
     return;
@@ -216,22 +298,18 @@ function renderizarTabela(atividades) {
 
   tabelaAtividades.innerHTML = atividades
     .map((atividade) => {
-      const statusNormalizado = (atividade.status || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-
-      const jaConcluida = statusNormalizado === "concluida";
+      const statusAtual = statusEfetivo(atividade);
+      const jaConcluida = normalizarTexto(statusAtual) === "concluida";
 
       return `
         <tr>
-          <td>${atividade.titulo || "-"}</td>
-          <td>${atividade.criador?.nome || "-"}</td>
-          <td>${atividade.descricao || "-"}</td>
+          <td class="col-atividade">${atividade.titulo || "-"}</td>
+          <td class="col-responsavel">${atividade.criador?.nome || "-"}</td>
+          <td class="col-descricao" title="${atividade.descricao || "-"}">${atividade.descricao || "-"}</td>
           <td>${atividade.prioridade ? criarBadge(atividade.prioridade) : "-"}</td>
-          <td>${atividade.status ? criarBadge(atividade.status) : "-"}</td>
-          <td>${formatarData(atividade.data_criacao)}</td>
-          <td>${formatarData(atividade.prazo)}</td>
+          <td>${atividade.status ? criarBadge(statusAtual) : "-"}</td>
+          <td class="col-data">${formatarData(atividade.data_criacao)}</td>
+          <td class="col-data">${formatarData(atividade.prazo)}</td>
           <td>
             <div class="acoes-tabela">
               <button
@@ -267,6 +345,59 @@ function renderizarTabela(atividades) {
       `;
     })
     .join("");
+}
+
+function aplicarFiltros() {
+  const termoBusca = normalizarTexto(filtroBusca.value);
+  const prioridadeSelecionada = normalizarTexto(filtroPrioridade.value);
+  const statusSelecionado = normalizarTexto(filtroStatus.value);
+  const prazoSelecionado = normalizarTexto(filtroPrazo.value);
+
+  const hoje = obterHojeSemHora();
+
+  const atividadesFiltradas = atividadesCache.filter((atividade) => {
+    const titulo = normalizarTexto(atividade.titulo);
+    const descricao = normalizarTexto(atividade.descricao);
+    const prioridade = normalizarTexto(atividade.prioridade);
+    const status = normalizarTexto(statusEfetivo(atividade));
+    const prazo = obterDataSemHora(atividade.prazo);
+
+    const atendeBusca =
+      !termoBusca ||
+      titulo.includes(termoBusca) ||
+      descricao.includes(termoBusca);
+
+    const atendePrioridade =
+      !prioridadeSelecionada || prioridade === prioridadeSelecionada;
+
+    const atendeStatus =
+      !statusSelecionado || status === statusSelecionado;
+
+    let atendePrazo = true;
+
+    if (prazoSelecionado === "sem-prazo") {
+      atendePrazo = !prazo;
+    } else if (prazoSelecionado === "hoje") {
+      atendePrazo = !!prazo && prazo.getTime() === hoje.getTime();
+    } else if (prazoSelecionado === "vencidas") {
+      atendePrazo = !!prazo && prazo < hoje;
+    } else if (prazoSelecionado === "proximas") {
+      atendePrazo = !!prazo && prazo >= hoje;
+    }
+
+    return atendeBusca && atendePrioridade && atendeStatus && atendePrazo;
+  });
+
+  atualizarCards(atividadesFiltradas);
+  renderizarTabela(atividadesFiltradas);
+}
+
+function limparFiltros() {
+  filtroBusca.value = "";
+  filtroPrioridade.value = "";
+  filtroStatus.value = "";
+  filtroPrazo.value = "";
+  aplicarFiltros();
 }
 
 tabelaAtividades.addEventListener("click", async (event) => {
@@ -316,7 +447,7 @@ tabelaAtividades.addEventListener("click", async (event) => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(payload)
       });
@@ -345,7 +476,7 @@ tabelaAtividades.addEventListener("click", async (event) => {
       const resposta = await fetch(`${API_BASE_URL}/atividades/${id}`, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         }
       });
 
@@ -373,7 +504,7 @@ async function carregarAtividades() {
   try {
     const resposta = await fetch(`${API_BASE_URL}/atividades`, {
       headers: {
-        "Authorization": `Bearer ${token}`
+        Authorization: `Bearer ${token}`
       }
     });
 
@@ -395,9 +526,8 @@ async function carregarAtividades() {
       return;
     }
 
-    atividadesCache = dados;
-    atualizarCards(dados);
-    renderizarTabela(dados);
+    atividadesCache = Array.isArray(dados) ? dados : [];
+    aplicarFiltros();
   } catch (error) {
     tabelaAtividades.innerHTML = `
       <tr>
