@@ -1,6 +1,5 @@
 import { API_BASE_URL } from "./config.js";
 
-
 const token = localStorage.getItem("token");
 const usuario = JSON.parse(localStorage.getItem("usuario"));
 
@@ -209,7 +208,7 @@ function renderizarTabela(atividades) {
   if (!atividades.length) {
     tabelaAtividades.innerHTML = `
       <tr>
-        <td colspan="7" class="empty-state">Nenhuma atividade cadastrada.</td>
+        <td colspan="8" class="empty-state">Nenhuma atividade cadastrada.</td>
       </tr>
     `;
     return;
@@ -227,6 +226,7 @@ function renderizarTabela(atividades) {
       return `
         <tr>
           <td>${atividade.titulo || "-"}</td>
+          <td>${atividade.criador?.nome || "-"}</td>
           <td>${atividade.descricao || "-"}</td>
           <td>${atividade.prioridade ? criarBadge(atividade.prioridade) : "-"}</td>
           <td>${atividade.status ? criarBadge(atividade.status) : "-"}</td>
@@ -362,10 +362,11 @@ tabelaAtividades.addEventListener("click", async (event) => {
     }
   }
 });
+
 async function carregarAtividades() {
   tabelaAtividades.innerHTML = `
     <tr>
-      <td colspan="7" class="empty-state">Carregando atividades.</td>
+      <td colspan="8" class="empty-state">Carregando atividades.</td>
     </tr>
   `;
 
@@ -388,7 +389,7 @@ async function carregarAtividades() {
 
       tabelaAtividades.innerHTML = `
         <tr>
-          <td colspan="7" class="empty-state">${dados.erro || "Erro ao carregar atividades."}</td>
+          <td colspan="8" class="empty-state">${dados.erro || "Erro ao carregar atividades."}</td>
         </tr>
       `;
       return;
@@ -400,8 +401,10 @@ async function carregarAtividades() {
   } catch (error) {
     tabelaAtividades.innerHTML = `
       <tr>
-        <td colspan="7" class="empty-state">Erro ao conectar com o servidor.</td>
+        <td colspan="8" class="empty-state">Erro ao conectar com o servidor.</td>
       </tr>
     `;
   }
 }
+
+carregarAtividades();

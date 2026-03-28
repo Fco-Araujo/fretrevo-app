@@ -25,7 +25,14 @@ export async function criarAtividade(req, res) {
           responsavel_id: usuario.id
         }
       ])
-      .select();
+      .select(`
+        *,
+        criador:usuarios!atividades_criado_por_fkey (
+          id,
+          nome,
+          username
+        )
+      `);
 
     if (error) {
       return res.status(500).json({ erro: error.message });
@@ -41,7 +48,14 @@ export async function listarAtividades(req, res) {
   try {
     const { data, error } = await supabase
       .from("atividades")
-      .select("*")
+      .select(`
+        *,
+        criador:usuarios!atividades_criado_por_fkey (
+          id,
+          nome,
+          username
+        )
+      `)
       .order("data_criacao", { ascending: false });
 
     if (error) {
@@ -60,7 +74,14 @@ export async function buscarAtividadePorId(req, res) {
 
     const { data, error } = await supabase
       .from("atividades")
-      .select("*")
+      .select(`
+        *,
+        criador:usuarios!atividades_criado_por_fkey (
+          id,
+          nome,
+          username
+        )
+      `)
       .eq("id", id)
       .single();
 
@@ -118,7 +139,14 @@ export async function atualizarAtividade(req, res) {
       .from("atividades")
       .update(dadosAtualizados)
       .eq("id", id)
-      .select();
+      .select(`
+        *,
+        criador:usuarios!atividades_criado_por_fkey (
+          id,
+          nome,
+          username
+        )
+      `);
 
     if (error) {
       return res.status(500).json({ erro: error.message });
