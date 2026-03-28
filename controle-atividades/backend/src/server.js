@@ -1,25 +1,36 @@
 import express from "express";
-import cors from "cors";
 import dotenv from "dotenv";
 import { supabase } from "./config/supabase.js";
 import authRoutes from "./routes/authRoutes.js";
 import atividadeRoutes from "./routes/atividadeRoutes.js";
+import usuarioRoutes from "./routes/usuarioRoutes.js";
 import { verificarToken } from "./middleware/authMiddleware.js";
 
 dotenv.config();
 
 const app = express();
 
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+/**
+ * CORS manual
+ */
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Vary", "Origin");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
 
 app.use(express.json());
 
 app.use("/auth", authRoutes);
 app.use("/atividades", atividadeRoutes);
+app.use(usuarioRoutes);
 
 app.get("/", (req, res) => {
   res.send("API rodando 🚀");

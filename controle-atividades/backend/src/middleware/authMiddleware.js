@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-export function verificarToken(req, res, next) {
+const verificarToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -20,4 +20,6 @@ export function verificarToken(req, res, next) {
   } catch (error) {
     return res.status(401).json({ erro: "Token inválido ou expirado." });
   }
-}
+};
+
+export { verificarToken };

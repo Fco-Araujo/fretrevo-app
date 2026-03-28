@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "./config.js";
 
+
 const token = localStorage.getItem("token");
 const usuario = JSON.parse(localStorage.getItem("usuario"));
 
@@ -7,6 +8,7 @@ if (!token) {
   window.location.href = "./index.html";
 }
 
+const menuUsuariosLink = document.getElementById("menuUsuariosLink");
 const boasVindas = document.getElementById("boasVindas");
 const tabelaAtividades = document.getElementById("tabelaAtividades");
 const cardTotal = document.getElementById("cardTotal");
@@ -38,6 +40,10 @@ let modoEdicao = false;
 let atividadeEditandoId = null;
 
 boasVindas.textContent = `Bem-vindo, ${usuario?.nome || "usuário"}`;
+
+if (usuario?.perfil === "admin" && menuUsuariosLink) {
+  menuUsuariosLink.classList.remove("hidden");
+}
 
 logoutBtn.addEventListener("click", () => {
   localStorage.removeItem("token");

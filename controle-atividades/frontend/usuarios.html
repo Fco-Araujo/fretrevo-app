@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usuários | Controle de Atividades</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body class="dashboard-body">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="logo-area">
+          <div class="logo-icon">CA</div>
+          <div>
+            <h2>Controle</h2>
+            <span>Atividades</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+        <a href="./dashboard.html" class="nav-link">Dashboard</a>
+        <a href="#" class="nav-link">Atividades</a>
+        <a href="#" class="nav-link">Indicadores</a>
+        <a href="#" class="nav-link">Prazos</a>
+        <a href="./usuarios.html" class="nav-link active">Usuários</a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button id="logoutBtn" class="btn btn-outline btn-full">Sair</button>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div>
+          <h1>Gerenciamento de Usuários</h1>
+          <p id="boasVindasUsuarios">Bem-vindo</p>
+        </div>
+
+        <div class="topbar-actions">
+          <button id="abrirModalUsuarioBtn" class="btn btn-primary">+ Novo usuário</button>
+        </div>
+      </header>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Usuários cadastrados</h2>
+            <p>Somente administradores podem acessar esta área</p>
+          </div>
+          <button id="recarregarUsuariosBtn" class="btn btn-outline">Atualizar</button>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Username</th>
+                <th>Perfil</th>
+                <th>Status</th>
+                <th>Criação</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaUsuarios">
+              <tr>
+                <td colspan="6" class="empty-state">Carregando usuários.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modalUsuarioOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalUsuarioTitulo">Novo usuário</h3>
+        <button id="fecharModalUsuarioBtn" class="modal-close">×</button>
+      </div>
+
+      <form id="usuarioForm" class="form">
+        <div class="form-grid">
+          <div class="input-group">
+            <label for="usuarioNome">Nome</label>
+            <input type="text" id="usuarioNome" placeholder="Digite o nome" required />
+          </div>
+
+          <div class="input-group">
+            <label for="usuarioUsername">Username</label>
+            <input type="text" id="usuarioUsername" placeholder="Digite o username" required />
+          </div>
+
+          <div class="input-group">
+            <label for="usuarioPerfil">Perfil</label>
+            <select id="usuarioPerfil" required>
+              <option value="">Selecione</option>
+              <option value="admin">Admin</option>
+              <option value="comum">Comum</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="usuarioAtivo">Status</label>
+            <select id="usuarioAtivo" required>
+              <option value="true">Ativo</option>
+              <option value="false">Inativo</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="usuarioSenha">Senha</label>
+            <input type="password" id="usuarioSenha" placeholder="Digite a senha" />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="cancelarModalUsuarioBtn" class="btn btn-outline">Cancelar</button>
+          <button type="submit" id="salvarUsuarioBtn" class="btn btn-primary">Salvar usuário</button>
+        </div>
+
+        <p id="usuarioMensagem" class="form-message"></p>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="./js/usuarios.js"></script>
+</body>
+</html>
