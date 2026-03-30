@@ -1,0 +1,21 @@
+# Variáveis de ambiente
+.env
+
+# Logs
+logs/
+*.log
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Build / dist
+dist/
+build/
+
+# Editor
+.vscode/
+.idea/
+
+# Outros
+*.tmp
