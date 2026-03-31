@@ -1,7 +1,8 @@
 import { API_BASE_URL } from "./config.js";
 
 const token = localStorage.getItem("token");
-const usuario = JSON.parse(localStorage.getItem("usuario"));
+const usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
+const ehAdmin = usuario?.perfil === "admin";
 
 if (!token) {
   window.location.href = "./index.html";
@@ -25,6 +26,7 @@ const filtroBusca = document.getElementById("filtroBusca");
 const filtroPrioridade = document.getElementById("filtroPrioridade");
 const filtroStatus = document.getElementById("filtroStatus");
 const filtroPrazo = document.getElementById("filtroPrazo");
+const filtroSetor = document.getElementById("filtroSetor");
 
 const abrirModalBtn = document.getElementById("abrirModalBtn");
 const fecharModalBtn = document.getElementById("fecharModalBtn");
@@ -39,6 +41,8 @@ const descricaoInput = document.getElementById("descricao");
 const prioridadeInput = document.getElementById("prioridade");
 const statusInput = document.getElementById("status");
 const prazoInput = document.getElementById("prazo");
+const setorInput = document.getElementById("setor");
+const dataReuniaoInput = document.getElementById("dataReuniao");
 
 const modalTitulo = document.querySelector(".modal-header h3");
 const botaoSubmitModal = atividadeForm.querySelector('button[type="submit"]');
@@ -49,7 +53,7 @@ let atividadeEditandoId = null;
 
 boasVindas.textContent = usuario?.nome || "Usuário";
 
-if (usuario?.perfil === "admin" && menuUsuariosLink) {
+if (ehAdmin && menuUsuariosLink) {
   menuUsuariosLink.classList.remove("hidden");
 }
 
@@ -64,33 +68,36 @@ abrirModalBtn.addEventListener("click", () => {
   modalOverlay.classList.remove("hidden");
 });
 
-fecharModalBtn.addEventListener("click", fecharModal);
-cancelarModalBtn.addEventListener("click", fecharModal);
+fecharModalBtn?.addEventListener("click", fecharModal);
+cancelarModalBtn?.addEventListener("click", fecharModal);
 
-modalOverlay.addEventListener("click", (event) => {
+modalOverlay?.addEventListener("click", (event) => {
   if (event.target === modalOverlay) {
     fecharModal();
   }
 });
 
-recarregarBtn.addEventListener("click", carregarAtividades);
-limparFiltrosBtn.addEventListener("click", limparFiltros);
+recarregarBtn?.addEventListener("click", carregarAtividades);
+limparFiltrosBtn?.addEventListener("click", limparFiltros);
 
-[filtroBusca, filtroPrioridade, filtroStatus, filtroPrazo].forEach((elemento) => {
+[filtroBusca, filtroPrioridade, filtroStatus, filtroPrazo, filtroSetor].forEach((elemento) => {
+  if (!elemento) return;
   elemento.addEventListener("input", aplicarFiltros);
   elemento.addEventListener("change", aplicarFiltros);
 });
 
-atividadeForm.addEventListener("submit", async (event) => {
+atividadeForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   atividadeMensagem.textContent = "";
 
   const payload = {
     titulo: tituloInput.value.trim(),
     descricao: descricaoInput.value.trim(),
-    prioridade: prioridadeInput.value,
-    status: statusInput.value,
-    prazo: prazoInput.value || null
+    prioridade: prioridadeInput.value || null,
+    status: statusInput.value || null,
+    prazo: prazoInput.value || null,
+    setor: setorInput.value.trim() || null,
+    data_reuniao: dataReuniaoInput.value || null
   };
 
   if (!payload.titulo) {
@@ -125,7 +132,7 @@ atividadeForm.addEventListener("submit", async (event) => {
     resetarModoEdicao();
     fecharModal();
     carregarAtividades();
-  } catch (error) {
+  } catch {
     atividadeMensagem.textContent = "Erro ao conectar com o servidor.";
   }
 });
@@ -136,6 +143,14 @@ function prepararModalNovaAtividade() {
   atividadeMensagem.textContent = "";
   modalTitulo.textContent = "Nova atividade";
   botaoSubmitModal.textContent = "Salvar atividade";
+
+  tituloInput.disabled = false;
+  prazoInput.disabled = false;
+  descricaoInput.disabled = false;
+  prioridadeInput.disabled = false;
+  statusInput.disabled = false;
+  setorInput.disabled = false;
+  dataReuniaoInput.disabled = false;
 }
 
 function prepararModalEdicao(atividade) {
@@ -151,6 +166,17 @@ function prepararModalEdicao(atividade) {
   prioridadeInput.value = atividade.prioridade || "";
   statusInput.value = normalizarStatusOriginal(atividade.status);
   prazoInput.value = formatarDataParaInput(atividade.prazo);
+  setorInput.value = atividade.setor || "";
+  dataReuniaoInput.value = formatarDataParaInput(atividade.data_reuniao);
+
+  tituloInput.disabled = !ehAdmin;
+  prazoInput.disabled = !ehAdmin;
+
+  descricaoInput.disabled = false;
+  prioridadeInput.disabled = false;
+  statusInput.disabled = false;
+  setorInput.disabled = false;
+  dataReuniaoInput.disabled = false;
 
   modalOverlay.classList.remove("hidden");
 }
@@ -169,14 +195,28 @@ function fecharModal() {
 
 function formatarData(data) {
   if (!data) return "-";
-  return new Date(data).toLocaleDateString("pt-BR");
+
+  if (typeof data === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data)) {
+    const [ano, mes, dia] = data.split("-");
+    return `${dia}/${mes}/${ano}`;
+  }
+
+  const dt = new Date(data);
+
+  if (Number.isNaN(dt.getTime())) return "-";
+
+  const dia = String(dt.getDate()).padStart(2, "0");
+  const mes = String(dt.getMonth() + 1).padStart(2, "0");
+  const ano = dt.getFullYear();
+
+  return `${dia}/${mes}/${ano}`;
 }
 
 function formatarDataParaInput(data) {
   if (!data) return "";
 
-  if (typeof data === "string" && /^\d{4}-\d{2}-\d{2}/.test(data)) {
-    return data.slice(0, 10);
+  if (typeof data === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data)) {
+    return data;
   }
 
   const dt = new Date(data);
@@ -192,172 +232,219 @@ function formatarDataParaInput(data) {
 
 function normalizarTexto(texto = "") {
   return String(texto)
-    .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .trim();
+    .trim()
+    .toLowerCase();
 }
 
-function obterHojeSemHora() {
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-  return hoje;
+function escaparHtml(valor = "") {
+  return String(valor)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function obterDataSemHora(data) {
   if (!data) return null;
 
-  const dataConvertida = new Date(data);
+  if (typeof data === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data)) {
+    const [ano, mes, dia] = data.split("-").map(Number);
+    return new Date(ano, mes - 1, dia);
+  }
 
-  if (Number.isNaN(dataConvertida.getTime())) return null;
+  const dt = new Date(data);
 
-  dataConvertida.setHours(0, 0, 0, 0);
-  return dataConvertida;
+  if (Number.isNaN(dt.getTime())) return null;
+
+  return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+}
+
+function obterHojeSemHora() {
+  const agora = new Date();
+  return new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
 }
 
 function statusEfetivo(atividade) {
-  const statusOriginal = normalizarTexto(atividade.status);
+  const statusOriginal = normalizarStatusOriginal(atividade.status);
+
+  if (normalizarTexto(statusOriginal) === "concluida") {
+    return "Concluída";
+  }
+
   const prazo = obterDataSemHora(atividade.prazo);
   const hoje = obterHojeSemHora();
 
-  const concluida =
-    statusOriginal === "concluida" ||
-    statusOriginal === "concluída";
-
-  if (!concluida && prazo && prazo < hoje) {
-    if (statusOriginal === "pendente" || statusOriginal === "em andamento") {
-      return "atrasado";
-    }
+  if (prazo && prazo < hoje) {
+    return "Atrasado";
   }
 
-  if (statusOriginal === "concluida" || statusOriginal === "concluída") {
-    return "concluída";
+  if (normalizarTexto(statusOriginal) === "em andamento") {
+    return "Em andamento";
   }
 
-  if (statusOriginal === "em andamento") {
-    return "em andamento";
-  }
-
-  if (statusOriginal === "pendente") {
-    return "pendente";
-  }
-
-  return atividade.status || "-";
+  return "Pendente";
 }
 
 function normalizarStatusOriginal(status) {
-  const texto = normalizarTexto(status);
+  const statusNormalizado = normalizarTexto(status);
 
-  if (texto === "concluida" || texto === "concluída") return "concluída";
-  if (texto === "em andamento") return "em andamento";
-  if (texto === "pendente") return "pendente";
+  if (statusNormalizado === "concluida") return "concluída";
+  if (statusNormalizado === "em andamento") return "em andamento";
+  if (statusNormalizado === "pendente") return "pendente";
+  if (statusNormalizado === "atrasado") return "atrasado";
 
-  return "";
+  return status || "pendente";
 }
 
-function criarBadge(texto, rotulo = texto) {
-  const classe = normalizarTexto(texto).replace(/\s+/g, "-");
-  return `<span class="badge badge-${classe}">${rotulo}</span>`;
+function obterClasseStatus(status) {
+  const valor = normalizarTexto(status);
+
+  if (valor === "concluida") return "status-chip status-concluida";
+  if (valor === "em andamento") return "status-chip status-andamento";
+  if (valor === "atrasado") return "status-chip status-atrasado";
+  return "status-chip status-pendente";
 }
 
-function atualizarCards(atividades) {
-  const total = atividades.length;
+function obterClassePrioridade(prioridade) {
+  const valor = normalizarTexto(prioridade);
 
-  const pendentes = atividades.filter(
-    (item) => statusEfetivo(item) === "pendente"
-  ).length;
+  if (valor === "critica") return "priority-badge prioridade-critica";
+  if (valor === "alta") return "priority-badge prioridade-alta";
+  if (valor === "media") return "priority-badge prioridade-media";
+  return "priority-badge prioridade-baixa";
+}
 
-  const andamento = atividades.filter(
-    (item) => statusEfetivo(item) === "em andamento"
-  ).length;
+function atualizarCards(lista) {
+  cardTotal.textContent = lista.length;
+  cardPendentes.textContent = lista.filter((a) => normalizarTexto(statusEfetivo(a)) === "pendente").length;
+  cardAndamento.textContent = lista.filter((a) => normalizarTexto(statusEfetivo(a)) === "em andamento").length;
+  cardAtrasadas.textContent = lista.filter((a) => normalizarTexto(statusEfetivo(a)) === "atrasado").length;
+  cardConcluidas.textContent = lista.filter((a) => normalizarTexto(statusEfetivo(a)) === "concluida").length;
+}
 
-  const atrasadas = atividades.filter(
-    (item) => statusEfetivo(item) === "atrasado"
-  ).length;
+function popularFiltroSetor(lista) {
+  if (!filtroSetor) return;
 
-  const concluidas = atividades.filter(
-    (item) => statusEfetivo(item) === "concluída"
-  ).length;
+  const valorAtual = filtroSetor.value;
 
-  cardTotal.textContent = total;
-  cardPendentes.textContent = pendentes;
-  cardAndamento.textContent = andamento;
-  cardAtrasadas.textContent = atrasadas;
-  cardConcluidas.textContent = concluidas;
+  const setoresUnicos = [...new Set(
+    lista
+      .map((atividade) => (atividade.setor || "").trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, "pt-BR"));
+
+  filtroSetor.innerHTML = `<option value="">Todos</option>`;
+
+  setoresUnicos.forEach((setor) => {
+    const option = document.createElement("option");
+    option.value = setor;
+    option.textContent = setor;
+    filtroSetor.appendChild(option);
+  });
+
+  filtroSetor.value = setoresUnicos.includes(valorAtual) ? valorAtual : "";
 }
 
 function renderizarTabela(atividades) {
   if (!atividades.length) {
     tabelaAtividades.innerHTML = `
       <tr>
-        <td colspan="8" class="empty-state">Nenhuma atividade encontrada.</td>
+        <td colspan="10" class="empty-state">Nenhuma atividade encontrada.</td>
       </tr>
     `;
     return;
   }
 
-  tabelaAtividades.innerHTML = atividades
-    .map((atividade) => {
-      const statusAtual = statusEfetivo(atividade);
-      const jaConcluida = normalizarTexto(statusAtual) === "concluida";
+  tabelaAtividades.innerHTML = atividades.map((atividade) => {
+    const status = statusEfetivo(atividade);
+    const prioridade = atividade.prioridade || "-";
 
-      return `
-        <tr>
-          <td class="col-atividade">${atividade.titulo || "-"}</td>
-          <td class="col-responsavel">${atividade.criador?.nome || "-"}</td>
-          <td class="col-descricao" title="${atividade.descricao || "-"}">${atividade.descricao || "-"}</td>
-          <td>${atividade.prioridade ? criarBadge(atividade.prioridade) : "-"}</td>
-          <td>${atividade.status ? criarBadge(statusAtual) : "-"}</td>
-          <td class="col-data">${formatarData(atividade.data_criacao)}</td>
-          <td class="col-data">${formatarData(atividade.prazo)}</td>
-          <td>
-            <div class="acoes-tabela">
-              <button
-                class="btn btn-outline btn-tabela"
-                data-acao="editar"
-                data-id="${atividade.id}"
-                title="Editar atividade"
-              >
-                Editar
-              </button>
+    const responsavelNome =
+      atividade?.criador?.nome ||
+      atividade?.responsavel?.nome ||
+      usuario?.nome ||
+      "-";
 
-              <button
-                class="btn btn-outline btn-tabela btn-icon btn-concluir ${jaConcluida ? "btn-concluida" : ""}"
-                data-acao="concluir"
-                data-id="${atividade.id}"
-                title="${jaConcluida ? "Atividade já concluída" : "Concluir atividade"}"
-                ${jaConcluida ? "disabled" : ""}
-              >
-                ✔
-              </button>
+    const setor = atividade.setor || "-";
+    const temReuniao = !!atividade.data_reuniao;
 
-              <button
-                class="btn btn-outline btn-tabela btn-excluir"
-                data-acao="excluir"
-                data-id="${atividade.id}"
-                title="Excluir atividade"
-              >
+    const reuniaoHtml = temReuniao
+      ? `
+        <div class="reuniao-wrap">
+          <span class="reuniao-alerta"></span>
+          <span class="reuniao-data">${formatarData(atividade.data_reuniao)}</span>
+        </div>
+      `
+      : `<span class="reuniao-vazia">-</span>`;
+
+    const botoesAcoes = `
+      <div class="acoes-botoes">
+        <button class="btn-acao" data-acao="editar" data-id="${atividade.id}">
+          Editar
+        </button>
+
+        ${
+          normalizarTexto(status) !== "concluida"
+            ? `<button class="btn-acao btn-concluir" data-acao="concluir" data-id="${atividade.id}">
+                Concluir
+              </button>`
+            : ""
+        }
+
+        ${
+          ehAdmin
+            ? `<button class="btn-acao btn-excluir" data-acao="excluir" data-id="${atividade.id}">
                 Excluir
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    })
-    .join("");
+              </button>`
+            : ""
+        }
+      </div>
+    `;
+
+    return `
+      <tr>
+        <td>${escaparHtml(responsavelNome)}</td>
+        <td>${escaparHtml(atividade.titulo || "-")}</td>
+        <td>${escaparHtml(atividade.descricao || "-")}</td>
+        <td>${escaparHtml(setor)}</td>
+
+        <td>
+          <span class="${obterClassePrioridade(prioridade)}">
+            ${escaparHtml(prioridade)}
+          </span>
+        </td>
+
+        <td>
+          <span class="${obterClasseStatus(status)}">
+            ${escaparHtml(status)}
+          </span>
+        </td>
+
+        <td>${formatarData(atividade.data_criacao)}</td>
+        <td>${formatarData(atividade.prazo)}</td>
+        <td>${reuniaoHtml}</td>
+        <td>${botoesAcoes}</td>
+      </tr>
+    `;
+  }).join("");
 }
 
 function aplicarFiltros() {
-  const termoBusca = normalizarTexto(filtroBusca.value);
-  const prioridadeSelecionada = normalizarTexto(filtroPrioridade.value);
-  const statusSelecionado = normalizarTexto(filtroStatus.value);
-  const prazoSelecionado = normalizarTexto(filtroPrazo.value);
+  const termoBusca = normalizarTexto(filtroBusca?.value || "");
+  const prioridadeSelecionada = normalizarTexto(filtroPrioridade?.value || "");
+  const statusSelecionado = normalizarTexto(filtroStatus?.value || "");
+  const prazoSelecionado = normalizarTexto(filtroPrazo?.value || "");
+  const setorSelecionado = normalizarTexto(filtroSetor?.value || "");
 
   const hoje = obterHojeSemHora();
 
   const atividadesFiltradas = atividadesCache.filter((atividade) => {
     const titulo = normalizarTexto(atividade.titulo);
     const descricao = normalizarTexto(atividade.descricao);
+    const setor = normalizarTexto(atividade.setor);
     const prioridade = normalizarTexto(atividade.prioridade);
     const status = normalizarTexto(statusEfetivo(atividade));
     const prazo = obterDataSemHora(atividade.prazo);
@@ -365,27 +452,21 @@ function aplicarFiltros() {
     const atendeBusca =
       !termoBusca ||
       titulo.includes(termoBusca) ||
-      descricao.includes(termoBusca);
+      descricao.includes(termoBusca) ||
+      setor.includes(termoBusca);
 
-    const atendePrioridade =
-      !prioridadeSelecionada || prioridade === prioridadeSelecionada;
-
-    const atendeStatus =
-      !statusSelecionado || status === statusSelecionado;
+    const atendePrioridade = !prioridadeSelecionada || prioridade === prioridadeSelecionada;
+    const atendeStatus = !statusSelecionado || status === statusSelecionado;
+    const atendeSetor = !setorSelecionado || setor === setorSelecionado;
 
     let atendePrazo = true;
 
-    if (prazoSelecionado === "sem-prazo") {
-      atendePrazo = !prazo;
-    } else if (prazoSelecionado === "hoje") {
-      atendePrazo = !!prazo && prazo.getTime() === hoje.getTime();
-    } else if (prazoSelecionado === "vencidas") {
-      atendePrazo = !!prazo && prazo < hoje;
-    } else if (prazoSelecionado === "proximas") {
-      atendePrazo = !!prazo && prazo >= hoje;
-    }
+    if (prazoSelecionado === "sem-prazo") atendePrazo = !prazo;
+    else if (prazoSelecionado === "hoje") atendePrazo = !!prazo && prazo.getTime() === hoje.getTime();
+    else if (prazoSelecionado === "vencidas") atendePrazo = !!prazo && prazo < hoje;
+    else if (prazoSelecionado === "proximas") atendePrazo = !!prazo && prazo >= hoje;
 
-    return atendeBusca && atendePrioridade && atendeStatus && atendePrazo;
+    return atendeBusca && atendePrioridade && atendeStatus && atendePrazo && atendeSetor;
   });
 
   atualizarCards(atividadesFiltradas);
@@ -393,111 +474,18 @@ function aplicarFiltros() {
 }
 
 function limparFiltros() {
-  filtroBusca.value = "";
-  filtroPrioridade.value = "";
-  filtroStatus.value = "";
-  filtroPrazo.value = "";
+  if (filtroBusca) filtroBusca.value = "";
+  if (filtroPrioridade) filtroPrioridade.value = "";
+  if (filtroStatus) filtroStatus.value = "";
+  if (filtroPrazo) filtroPrazo.value = "";
+  if (filtroSetor) filtroSetor.value = "";
   aplicarFiltros();
 }
-
-tabelaAtividades.addEventListener("click", async (event) => {
-  const botao = event.target.closest("button[data-acao]");
-
-  if (!botao) return;
-
-  const { acao, id } = botao.dataset;
-
-  if (acao === "editar") {
-    const atividade = atividadesCache.find((item) => String(item.id) === String(id));
-
-    if (!atividade) {
-      alert("Atividade não encontrada.");
-      return;
-    }
-
-    prepararModalEdicao(atividade);
-    return;
-  }
-
-  if (acao === "concluir") {
-    const atividade = atividadesCache.find((item) => String(item.id) === String(id));
-
-    if (!atividade) {
-      alert("Atividade não encontrada.");
-      return;
-    }
-
-    const confirmar = confirm("Deseja marcar esta atividade como concluída?");
-
-    if (!confirmar) return;
-
-    try {
-      const payload = {
-        titulo: atividade.titulo || "",
-        descricao: atividade.descricao || "",
-        prioridade: atividade.prioridade || null,
-        status: "concluída",
-        prazo: atividade.prazo || null,
-        tipo: atividade.tipo || null,
-        origem: atividade.origem || null,
-        observacoes: atividade.observacoes || null
-      };
-
-      const resposta = await fetch(`${API_BASE_URL}/atividades/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const dados = await resposta.json();
-
-      if (!resposta.ok) {
-        alert(dados.erro || "Erro ao concluir atividade.");
-        return;
-      }
-
-      carregarAtividades();
-      return;
-    } catch (error) {
-      alert("Erro ao conectar com o servidor.");
-      return;
-    }
-  }
-
-  if (acao === "excluir") {
-    const confirmar = confirm("Deseja excluir esta atividade?");
-
-    if (!confirmar) return;
-
-    try {
-      const resposta = await fetch(`${API_BASE_URL}/atividades/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      const dados = await resposta.json();
-
-      if (!resposta.ok) {
-        alert(dados.erro || "Erro ao excluir atividade.");
-        return;
-      }
-
-      carregarAtividades();
-    } catch (error) {
-      alert("Erro ao conectar com o servidor.");
-    }
-  }
-});
 
 async function carregarAtividades() {
   tabelaAtividades.innerHTML = `
     <tr>
-      <td colspan="8" class="empty-state">Carregando atividades.</td>
+      <td colspan="10" class="empty-state">Carregando atividades.</td>
     </tr>
   `;
 
@@ -511,30 +499,99 @@ async function carregarAtividades() {
     const dados = await resposta.json();
 
     if (!resposta.ok) {
-      if (resposta.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("usuario");
-        window.location.href = "./index.html";
-        return;
-      }
-
       tabelaAtividades.innerHTML = `
         <tr>
-          <td colspan="8" class="empty-state">${dados.erro || "Erro ao carregar atividades."}</td>
+          <td colspan="10" class="empty-state">${escaparHtml(dados.erro || "Erro ao carregar atividades.")}</td>
         </tr>
       `;
       return;
     }
 
     atividadesCache = Array.isArray(dados) ? dados : [];
+    popularFiltroSetor(atividadesCache);
     aplicarFiltros();
-  } catch (error) {
+  } catch {
     tabelaAtividades.innerHTML = `
       <tr>
-        <td colspan="8" class="empty-state">Erro ao conectar com o servidor.</td>
+        <td colspan="10" class="empty-state">Erro ao conectar com o servidor.</td>
       </tr>
     `;
   }
 }
+
+tabelaAtividades?.addEventListener("click", async (event) => {
+  const botao = event.target.closest("button[data-acao]");
+  if (!botao) return;
+
+  const { acao, id } = botao.dataset;
+
+  if (acao === "editar") {
+    const atividade = atividadesCache.find((item) => String(item.id) === String(id));
+    if (!atividade) return alert("Atividade não encontrada.");
+    prepararModalEdicao(atividade);
+    return;
+  }
+
+  if (acao === "concluir") {
+    const atividade = atividadesCache.find((item) => String(item.id) === String(id));
+    if (!atividade) return alert("Atividade não encontrada.");
+
+    const confirmar = confirm("Deseja marcar esta atividade como concluída?");
+    if (!confirmar) return;
+
+    try {
+      const payload = {
+        titulo: atividade.titulo || "",
+        descricao: atividade.descricao || "",
+        prioridade: atividade.prioridade || null,
+        status: "concluída",
+        prazo: atividade.prazo || null,
+        setor: atividade.setor || null,
+        data_reuniao: atividade.data_reuniao || null
+      };
+
+      const resposta = await fetch(`${API_BASE_URL}/atividades/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const dados = await resposta.json();
+      if (!resposta.ok) return alert(dados.erro || "Erro ao concluir atividade.");
+
+      carregarAtividades();
+    } catch {
+      alert("Erro ao conectar com o servidor.");
+    }
+
+    return;
+  }
+
+  if (acao === "excluir") {
+    if (!ehAdmin) return alert("Somente administradores podem excluir atividades.");
+
+    const confirmar = confirm("Deseja excluir esta atividade?");
+    if (!confirmar) return;
+
+    try {
+      const resposta = await fetch(`${API_BASE_URL}/atividades/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const dados = await resposta.json();
+      if (!resposta.ok) return alert(dados.erro || "Erro ao excluir atividade.");
+
+      carregarAtividades();
+    } catch {
+      alert("Erro ao conectar com o servidor.");
+    }
+  }
+});
 
 carregarAtividades();

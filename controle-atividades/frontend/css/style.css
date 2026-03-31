@@ -1195,3 +1195,160 @@ a {
     text-align: left;
   }
 }
+.titulo-celula {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.meeting-alert {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  animation: pulseAlert 1.2s infinite;
+  cursor: default;
+}
+
+@keyframes pulseAlert {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+/* ===== COLUNAS NOVAS: SETOR / DATA REUNIÃO ===== */
+.col-setor,
+.col-reuniao {
+  white-space: nowrap;
+}
+
+.reuniao-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reuniao-vazia {
+  color: #94a3b8;
+}
+
+.reuniao-alerta {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+  animation: piscarReuniao 1s infinite;
+  flex-shrink: 0;
+}
+
+.reuniao-data {
+  color: #f8fafc;
+  font-weight: 500;
+}
+
+@keyframes piscarReuniao {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.75);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(1.18);
+    box-shadow: 0 0 14px rgba(239, 68, 68, 1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.75);
+  }
+}
+
+/* ===== FILTRO DE SETOR ===== */
+.filtro-setor {
+  min-width: 180px;
+}
+
+/* ===== AJUSTE DOS BOTÕES DE AÇÃO ===== */
+.acoes-botoes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.btn-acao {
+  min-width: 82px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.55);
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-acao:hover {
+  transform: translateY(-1px);
+  border-color: rgba(168, 85, 247, 0.55);
+  background: rgba(30, 41, 59, 0.85);
+}
+
+.btn-concluir {
+  border-color: rgba(34, 197, 94, 0.35);
+  color: #86efac;
+}
+
+.btn-concluir:hover {
+  border-color: rgba(34, 197, 94, 0.65);
+  background: rgba(20, 83, 45, 0.35);
+}
+
+.btn-excluir {
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.btn-excluir:hover {
+  border-color: rgba(239, 68, 68, 0.65);
+  background: rgba(127, 29, 29, 0.35);
+}
+
+/* ===== RESPONSIVIDADE SÓ DESSA ÁREA ===== */
+@media (max-width: 1200px) {
+  .col-setor,
+  .col-reuniao {
+    min-width: 130px;
+  }
+}
+
+@media (max-width: 768px) {
+  .acoes-botoes {
+    gap: 6px;
+  }
+
+  .btn-acao {
+    min-width: 74px;
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+
+  .reuniao-wrap {
+    gap: 6px;
+  }
+
+  .reuniao-data {
+    font-size: 13px;
+  }
+}

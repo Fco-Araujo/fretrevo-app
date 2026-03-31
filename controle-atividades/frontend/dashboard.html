@@ -4,12 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard | Controle de Atividades</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
   />
+
   <link rel="stylesheet" href="./css/style.css" />
 </head>
 <body class="dashboard-body">
@@ -19,9 +21,9 @@
         <div class="logo-area">
           <div class="logo-icon">CA</div>
           <div class="sidebar-user-box">
-          <strong id="boasVindas">Usuário</strong>
+            <strong id="boasVindas">Usuário</strong>
+          </div>
         </div>
-      </div>
 
         <nav class="sidebar-nav">
           <a href="./dashboard.html" class="nav-link active">Cadastrar atividades</a>
@@ -75,7 +77,11 @@
         <div class="filtros-grid dashboard-filtros-grid">
           <div class="input-group">
             <label for="filtroBusca">Buscar atividade</label>
-            <input type="text" id="filtroBusca" placeholder="Digite título ou descrição" />
+            <input
+              type="text"
+              id="filtroBusca"
+              placeholder="Digite título, descrição ou setor"
+            />
           </div>
 
           <div class="input-group">
@@ -111,9 +117,20 @@
             </select>
           </div>
 
+          <div class="input-group">
+            <label for="filtroSetor">Setor</label>
+            <select id="filtroSetor">
+              <option value="">Todos</option>
+            </select>
+          </div>
+
           <div class="filtros-acoes">
-            <button id="limparFiltrosBtn" class="btn btn-outline">Limpar</button>
-            <button id="recarregarBtn" class="btn btn-outline">Atualizar</button>
+            <button id="limparFiltrosBtn" class="btn btn-outline" type="button">
+              Limpar
+            </button>
+            <button id="recarregarBtn" class="btn btn-outline" type="button">
+              Atualizar
+            </button>
           </div>
         </div>
       </section>
@@ -125,26 +142,31 @@
             <p>Visão geral das tarefas do sistema</p>
           </div>
 
-          <button id="abrirModalBtn" class="btn btn-primary">+ Nova atividade</button>
+          <button id="abrirModalBtn" class="btn btn-primary" type="button">
+            + Nova atividade
+          </button>
         </div>
 
         <div class="table-wrapper">
           <table class="modern-table">
             <thead>
               <tr>
-                <th>Atividade</th>
-                <th>Responsável</th>
-                <th>Descrição</th>
-                <th>Prioridade</th>
-                <th>Status</th>
-                <th>Criação</th>
-                <th>Prazo</th>
-                <th>Ações</th>
+                <th>RESPONSÁVEL</th>
+                <th>ATIVIDADE</th>
+                <th>DESCRIÇÃO</th>
+                <th>SETOR</th>
+                <th>PRIORIDADE</th>
+                <th>STATUS</th>
+                <th>CRIAÇÃO</th>
+                <th>PRAZO</th>
+                <th>REUNIÃO</th>
+                <th>AÇÕES</th>
               </tr>
             </thead>
+
             <tbody id="tabelaAtividades">
               <tr>
-                <td colspan="8" class="empty-state">Carregando atividades.</td>
+                <td colspan="10" class="empty-state">Carregando atividades.</td>
               </tr>
             </tbody>
           </table>
@@ -157,14 +179,19 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Nova atividade</h3>
-        <button id="fecharModalBtn" class="modal-close">×</button>
+        <button id="fecharModalBtn" class="modal-close" type="button">×</button>
       </div>
 
       <form id="atividadeForm" class="form">
         <div class="form-grid">
           <div class="input-group">
             <label for="titulo">Título</label>
-            <input type="text" id="titulo" placeholder="Digite o título da atividade" required />
+            <input
+              type="text"
+              id="titulo"
+              placeholder="Digite o título da atividade"
+              required
+            />
           </div>
 
           <div class="input-group">
@@ -192,16 +219,42 @@
             <label for="prazo">Prazo</label>
             <input type="date" id="prazo" />
           </div>
+
+          <div class="input-group">
+            <label for="setor">Setor</label>
+            <input
+              type="text"
+              id="setor"
+              placeholder="Ex: PCP, Expedição, Estoque"
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="dataReuniao">Marcar reunião</label>
+            <input type="date" id="dataReuniao" />
+          </div>
         </div>
 
         <div class="input-group">
           <label for="descricao">Descrição</label>
-          <textarea id="descricao" rows="4" placeholder="Descreva a atividade"></textarea>
+          <textarea
+            id="descricao"
+            rows="4"
+            placeholder="Descreva a atividade"
+          ></textarea>
         </div>
 
         <div class="modal-actions">
-          <button type="button" id="cancelarModalBtn" class="btn btn-outline">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Salvar atividade</button>
+          <button
+            type="button"
+            id="cancelarModalBtn"
+            class="btn btn-outline"
+          >
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Salvar atividade
+          </button>
         </div>
 
         <p id="atividadeMensagem" class="form-message"></p>

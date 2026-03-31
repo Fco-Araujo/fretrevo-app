@@ -2,7 +2,19 @@ import { supabase } from "../config/supabase.js";
 
 export async function criarAtividade(req, res) {
   try {
-    const { titulo, descricao, prioridade, status, prazo, tipo, origem, observacoes } = req.body;
+    const {
+      titulo,
+      descricao,
+      prioridade,
+      status,
+      prazo,
+      tipo,
+      origem,
+      observacoes,
+      setor,
+      data_reuniao
+    } = req.body;
+
     const usuario = req.usuario;
 
     if (!titulo) {
@@ -21,6 +33,8 @@ export async function criarAtividade(req, res) {
           tipo,
           origem,
           observacoes,
+          setor,
+          data_reuniao,
           criado_por: usuario.id,
           responsavel_id: usuario.id
         }
@@ -40,6 +54,7 @@ export async function criarAtividade(req, res) {
 
     return res.status(201).json(data[0]);
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ erro: "Erro ao criar atividade." });
   }
 }
@@ -64,6 +79,7 @@ export async function listarAtividades(req, res) {
 
     return res.json(data);
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ erro: "Erro ao listar atividades." });
   }
 }
@@ -91,6 +107,7 @@ export async function buscarAtividadePorId(req, res) {
 
     return res.json(data);
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ erro: "Erro ao buscar atividade." });
   }
 }
@@ -99,7 +116,19 @@ export async function atualizarAtividade(req, res) {
   try {
     const { id } = req.params;
     const usuario = req.usuario;
-    const { titulo, descricao, prioridade, status, prazo, tipo, origem, observacoes } = req.body;
+
+    const {
+      titulo,
+      descricao,
+      prioridade,
+      status,
+      prazo,
+      tipo,
+      origem,
+      observacoes,
+      setor,
+      data_reuniao
+    } = req.body;
 
     const { data: atividade, error: erroBusca } = await supabase
       .from("atividades")
@@ -111,24 +140,46 @@ export async function atualizarAtividade(req, res) {
       return res.status(404).json({ erro: "Atividade não encontrada." });
     }
 
+    const ehAdmin = usuario.perfil === "admin";
+
     const podeEditar =
-      usuario.perfil === "admin" ||
+      ehAdmin ||
       atividade.criado_por === usuario.id ||
       atividade.responsavel_id === usuario.id;
 
     if (!podeEditar) {
-      return res.status(403).json({ erro: "Você não tem permissão para editar esta atividade." });
+      return res.status(403).json({
+        erro: "Você não tem permissão para editar esta atividade."
+      });
+    }
+
+    if (!ehAdmin) {
+      const alterouTitulo =
+        titulo !== undefined && titulo !== atividade.titulo;
+
+      const alterouPrazo =
+        prazo !== undefined &&
+        String(prazo || "") !== String(atividade.prazo || "");
+
+      if (alterouTitulo || alterouPrazo) {
+        return res.status(403).json({
+          erro: "Usuário comum não pode editar título ou prazo."
+        });
+      }
     }
 
     const dadosAtualizados = {
-      titulo: titulo ?? atividade.titulo,
+      titulo: ehAdmin ? (titulo ?? atividade.titulo) : atividade.titulo,
       descricao: descricao ?? atividade.descricao,
       prioridade: prioridade ?? atividade.prioridade,
       status: status ?? atividade.status,
-      prazo: prazo ?? atividade.prazo,
+      prazo: ehAdmin ? (prazo ?? atividade.prazo) : atividade.prazo,
       tipo: tipo ?? atividade.tipo,
       origem: origem ?? atividade.origem,
-      observacoes: observacoes ?? atividade.observacoes
+      observacoes: observacoes ?? atividade.observacoes,
+      setor: setor ?? atividade.setor,
+      data_reuniao:
+        data_reuniao !== undefined ? data_reuniao : atividade.data_reuniao
     };
 
     if (status === "concluída" || status === "concluida") {
@@ -154,6 +205,7 @@ export async function atualizarAtividade(req, res) {
 
     return res.json(data[0]);
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ erro: "Erro ao atualizar atividade." });
   }
 }
@@ -163,6 +215,12 @@ export async function excluirAtividade(req, res) {
     const { id } = req.params;
     const usuario = req.usuario;
 
+    if (usuario.perfil !== "admin") {
+      return res.status(403).json({
+        erro: "Somente administradores podem excluir atividades."
+      });
+    }
+
     const { data: atividade, error: erroBusca } = await supabase
       .from("atividades")
       .select("*")
@@ -171,14 +229,6 @@ export async function excluirAtividade(req, res) {
 
     if (erroBusca || !atividade) {
       return res.status(404).json({ erro: "Atividade não encontrada." });
-    }
-
-    const podeExcluir =
-      usuario.perfil === "admin" ||
-      atividade.criado_por === usuario.id;
-
-    if (!podeExcluir) {
-      return res.status(403).json({ erro: "Você não tem permissão para excluir esta atividade." });
     }
 
     const { error } = await supabase
@@ -192,6 +242,7 @@ export async function excluirAtividade(req, res) {
 
     return res.json({ mensagem: "Atividade excluída com sucesso." });
   } catch (err) {
+    console.error(err);
     return res.status(500).json({ erro: "Erro ao excluir atividade." });
   }
 }
