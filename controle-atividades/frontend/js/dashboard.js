@@ -407,7 +407,7 @@ function renderizarTabela(atividades) {
   if (!atividades.length) {
     tabelaAtividades.innerHTML = `
       <tr>
-        <td colspan="10" class="empty-state">Nenhuma atividade encontrada.</td>
+        <td colspan="9" class="empty-state">Nenhuma atividade encontrada.</td>
       </tr>
     `;
     return;
@@ -432,34 +432,30 @@ function renderizarTabela(atividades) {
         ? `
           <div class="reuniao-wrap">
             ${!atividadeConcluida ? `<span class="reuniao-alerta"></span>` : ""}
-            <span class="reuniao-data">${formatarData(atividade.data_reuniao)}</span>
+            <span>${formatarData(atividade.data_reuniao)}</span>
           </div>
         `
-        : `<span class="reuniao-vazia">-</span>`;
+        : `-`;
 
       const botoesAcoes = `
         <div class="acoes-botoes">
-          <button type="button" class="btn-acao" data-acao="editar" data-id="${atividade.id}">
+          <button class="btn-acao" data-acao="editar" data-id="${atividade.id}">
             Editar
           </button>
 
           ${
             normalizarTexto(status) !== "concluida"
-              ? `
-                <button type="button" class="btn-acao btn-concluir" data-acao="concluir" data-id="${atividade.id}">
+              ? `<button class="btn-acao btn-concluir" data-acao="concluir" data-id="${atividade.id}">
                   Concluir
-                </button>
-              `
+                </button>`
               : ""
           }
 
           ${
             ehAdmin
-              ? `
-                <button type="button" class="btn-acao btn-excluir" data-acao="excluir" data-id="${atividade.id}">
+              ? `<button class="btn-acao btn-excluir" data-acao="excluir" data-id="${atividade.id}">
                   Excluir
-                </button>
-              `
+                </button>`
               : ""
           }
         </div>
@@ -468,19 +464,33 @@ function renderizarTabela(atividades) {
       return `
         <tr>
           <td>${escaparHtml(responsavelNome)}</td>
-          <td>${escaparHtml(atividade.titulo || "-")}</td>
-          <td>${escaparHtml(atividade.descricao || "-")}</td>
+          <td>
+            <div class="atividade-titulo">
+              ${escaparHtml(atividade.titulo || "-")}
+            </div>
+
+            ${
+              atividade.descricao
+                ? `<div class="atividade-descricao">
+                    ${escaparHtml(atividade.descricao)}
+                  </div>`
+                : ""
+            }
+          </td>
           <td>${escaparHtml(setor)}</td>
+
           <td>
             <span class="${obterClassePrioridade(prioridade)}">
               ${escaparHtml(prioridade)}
             </span>
           </td>
+
           <td>
             <span class="${obterClasseStatus(status)}">
               ${escaparHtml(status)}
             </span>
           </td>
+
           <td>${formatarData(atividade.data_criacao)}</td>
           <td>${formatarData(atividade.prazo)}</td>
           <td>${reuniaoHtml}</td>
@@ -694,6 +704,18 @@ tabelaAtividades?.addEventListener("click", async (event) => {
     } catch (error) {
       alert("Erro ao conectar com o servidor.");
     }
+  }
+});
+
+tabelaAtividades?.addEventListener("click", (e) => {
+  const linha = e.target.closest(".linha-principal");
+  if (!linha) return;
+
+  const id = linha.dataset.id;
+  const desc = document.getElementById(`desc-${id}`);
+
+  if (desc) {
+    desc.classList.toggle("hidden");
   }
 });
 
