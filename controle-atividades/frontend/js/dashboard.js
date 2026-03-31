@@ -41,13 +41,20 @@ const descricaoInput = document.getElementById("descricao");
 const prioridadeInput = document.getElementById("prioridade");
 const statusInput = document.getElementById("status");
 const prazoInput = document.getElementById("prazo");
-const setorInput = document.getElementById("setor");
+
+const setorSelect = document.getElementById("setorSelect");
+const adicionarSetorBtn = document.getElementById("adicionarSetorBtn");
+const setoresSelecionadosEl = document.getElementById("setoresSelecionados");
+
 const dataReuniaoInput = document.getElementById("dataReuniao");
 
 const modalTitulo = document.querySelector(".modal-header h3");
 const botaoSubmitModal = atividadeForm?.querySelector('button[type="submit"]');
 
 let atividadesCache = [];
+let setoresCache = [];
+let setoresSelecionados = [];
+
 let modoEdicao = false;
 let atividadeEditandoId = null;
 
@@ -79,13 +86,31 @@ modalOverlay?.addEventListener("click", (event) => {
   }
 });
 
-recarregarBtn?.addEventListener("click", carregarAtividades);
+recarregarBtn?.addEventListener("click", async () => {
+  await carregarSetores();
+  await carregarAtividades();
+});
+
 limparFiltrosBtn?.addEventListener("click", limparFiltros);
 
 [filtroBusca, filtroPrioridade, filtroStatus, filtroPrazo, filtroSetor].forEach((elemento) => {
   if (!elemento) return;
   elemento.addEventListener("input", aplicarFiltros);
   elemento.addEventListener("change", aplicarFiltros);
+});
+
+adicionarSetorBtn?.addEventListener("click", () => {
+  const nomeSetor = setorSelect?.value || "";
+  if (!nomeSetor) return;
+
+  if (!setoresSelecionados.includes(nomeSetor)) {
+    setoresSelecionados.push(nomeSetor);
+    renderizarSetoresSelecionados();
+  }
+
+  if (setorSelect) {
+    setorSelect.value = "";
+  }
 });
 
 atividadeForm?.addEventListener("submit", async (event) => {
@@ -98,7 +123,7 @@ atividadeForm?.addEventListener("submit", async (event) => {
     prioridade: prioridadeInput?.value || null,
     status: statusInput?.value || null,
     prazo: prazoInput?.value || null,
-    setor: setorInput?.value.trim() || null,
+    setor: setoresSelecionados.length ? setoresSelecionados.join(", ") : null,
     data_reuniao: dataReuniaoInput?.value || null
   };
 
@@ -164,12 +189,16 @@ function prepararModalNovaAtividade() {
   if (modalTitulo) modalTitulo.textContent = "Nova atividade";
   if (botaoSubmitModal) botaoSubmitModal.textContent = "Salvar atividade";
 
+  setoresSelecionados = [];
+  renderizarSetoresSelecionados();
+
   if (tituloInput) tituloInput.disabled = false;
   if (descricaoInput) descricaoInput.disabled = false;
   if (prazoInput) prazoInput.disabled = false;
   if (prioridadeInput) prioridadeInput.disabled = false;
   if (statusInput) statusInput.disabled = false;
-  if (setorInput) setorInput.disabled = false;
+  if (setorSelect) setorSelect.disabled = false;
+  if (adicionarSetorBtn) adicionarSetorBtn.disabled = false;
   if (dataReuniaoInput) dataReuniaoInput.disabled = false;
 }
 
@@ -187,10 +216,12 @@ function prepararModalEdicao(atividade) {
   if (prioridadeInput) prioridadeInput.value = atividade.prioridade || "";
   if (statusInput) statusInput.value = normalizarStatusOriginal(atividade.status);
   if (prazoInput) prazoInput.value = formatarDataParaInput(atividade.prazo);
-  if (setorInput) setorInput.value = atividade.setor || "";
   if (dataReuniaoInput) {
     dataReuniaoInput.value = formatarDataParaInput(atividade.data_reuniao);
   }
+
+  setoresSelecionados = quebrarSetores(atividade.setor);
+  renderizarSetoresSelecionados();
 
   if (ehAdmin) {
     if (tituloInput) tituloInput.disabled = false;
@@ -204,7 +235,8 @@ function prepararModalEdicao(atividade) {
 
   if (prioridadeInput) prioridadeInput.disabled = false;
   if (statusInput) statusInput.disabled = false;
-  if (setorInput) setorInput.disabled = false;
+  if (setorSelect) setorSelect.disabled = false;
+  if (adicionarSetorBtn) adicionarSetorBtn.disabled = false;
   if (dataReuniaoInput) dataReuniaoInput.disabled = false;
 
   modalOverlay?.classList.remove("hidden");
@@ -213,6 +245,8 @@ function prepararModalEdicao(atividade) {
 function resetarModoEdicao() {
   modoEdicao = false;
   atividadeEditandoId = null;
+  setoresSelecionados = [];
+  renderizarSetoresSelecionados();
 
   if (modalTitulo) modalTitulo.textContent = "Nova atividade";
   if (botaoSubmitModal) botaoSubmitModal.textContent = "Salvar atividade";
@@ -221,6 +255,51 @@ function resetarModoEdicao() {
 function fecharModal() {
   modalOverlay?.classList.add("hidden");
   limparMensagemFormulario();
+}
+
+function quebrarSetores(texto) {
+  if (!texto) return [];
+  return String(texto)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function removerSetorSelecionado(nomeSetor) {
+  setoresSelecionados = setoresSelecionados.filter((setor) => setor !== nomeSetor);
+  renderizarSetoresSelecionados();
+}
+
+function renderizarSetoresSelecionados() {
+  if (!setoresSelecionadosEl) return;
+
+  if (!setoresSelecionados.length) {
+    setoresSelecionadosEl.innerHTML = "";
+    return;
+  }
+
+  setoresSelecionadosEl.innerHTML = setoresSelecionados
+    .map(
+      (setor) => `
+        <span class="setor-tag">
+          ${escaparHtml(setor)}
+          <button
+            type="button"
+            class="remover-setor-btn"
+            data-setor="${escaparHtml(setor)}"
+          >
+            ×
+          </button>
+        </span>
+      `
+    )
+    .join("");
+
+  setoresSelecionadosEl.querySelectorAll(".remover-setor-btn").forEach((botao) => {
+    botao.addEventListener("click", () => {
+      removerSetorSelecionado(botao.dataset.setor);
+    });
+  });
 }
 
 function formatarData(data) {
@@ -384,7 +463,7 @@ function popularFiltroSetor(lista) {
   const setoresUnicos = [
     ...new Set(
       lista
-        .map((atividade) => (atividade.setor || "").trim())
+        .flatMap((atividade) => quebrarSetores(atividade.setor))
         .filter(Boolean)
     )
   ].sort((a, b) => a.localeCompare(b, "pt-BR"));
@@ -399,6 +478,21 @@ function popularFiltroSetor(lista) {
   });
 
   filtroSetor.value = setoresUnicos.includes(valorAtual) ? valorAtual : "";
+}
+
+function popularSelectSetores() {
+  if (!setorSelect) return;
+
+  setorSelect.innerHTML = `<option value="">Selecione um setor</option>`;
+
+  setoresCache
+    .filter((setor) => setor.ativo)
+    .forEach((setor) => {
+      const option = document.createElement("option");
+      option.value = setor.nome;
+      option.textContent = setor.nome;
+      setorSelect.appendChild(option);
+    });
 }
 
 function renderizarTabela(atividades) {
@@ -424,7 +518,7 @@ function renderizarTabela(atividades) {
         usuario?.nome ||
         "-";
 
-      const setor = atividade.setor || "-";
+      const setoresTexto = atividade.setor || "-";
       const temReuniao = !!atividade.data_reuniao;
       const atividadeConcluida = normalizarTexto(status) === "concluida";
 
@@ -439,13 +533,13 @@ function renderizarTabela(atividades) {
 
       const botoesAcoes = `
         <div class="acoes-botoes">
-          <button class="btn-acao" data-acao="editar" data-id="${atividade.id}">
+          <button type="button" class="btn-acao" data-acao="editar" data-id="${atividade.id}">
             Editar
           </button>
 
           ${
             normalizarTexto(status) !== "concluida"
-              ? `<button class="btn-acao btn-concluir" data-acao="concluir" data-id="${atividade.id}">
+              ? `<button type="button" class="btn-acao btn-concluir" data-acao="concluir" data-id="${atividade.id}">
                   Concluir
                 </button>`
               : ""
@@ -453,7 +547,7 @@ function renderizarTabela(atividades) {
 
           ${
             ehAdmin
-              ? `<button class="btn-acao btn-excluir" data-acao="excluir" data-id="${atividade.id}">
+              ? `<button type="button" class="btn-acao btn-excluir" data-acao="excluir" data-id="${atividade.id}">
                   Excluir
                 </button>`
               : ""
@@ -477,20 +571,17 @@ function renderizarTabela(atividades) {
                 : ""
             }
           </td>
-          <td>${escaparHtml(setor)}</td>
-
+          <td>${escaparHtml(setoresTexto)}</td>
           <td>
             <span class="${obterClassePrioridade(prioridade)}">
               ${escaparHtml(prioridade)}
             </span>
           </td>
-
           <td>
             <span class="${obterClasseStatus(status)}">
               ${escaparHtml(status)}
             </span>
           </td>
-
           <td>${formatarData(atividade.data_criacao)}</td>
           <td>${formatarData(atividade.prazo)}</td>
           <td>${reuniaoHtml}</td>
@@ -513,7 +604,7 @@ function aplicarFiltros() {
   const atividadesFiltradas = atividadesCache.filter((atividade) => {
     const titulo = normalizarTexto(atividade.titulo);
     const descricao = normalizarTexto(atividade.descricao);
-    const setor = normalizarTexto(atividade.setor);
+    const setoresLista = quebrarSetores(atividade.setor).map(normalizarTexto);
     const prioridade = normalizarTexto(atividade.prioridade);
     const status = normalizarTexto(statusEfetivo(atividade));
     const prazo = obterDataSemHora(atividade.prazo);
@@ -522,7 +613,7 @@ function aplicarFiltros() {
       !termoBusca ||
       titulo.includes(termoBusca) ||
       descricao.includes(termoBusca) ||
-      setor.includes(termoBusca);
+      setoresLista.some((setor) => setor.includes(termoBusca));
 
     const atendePrioridade =
       !prioridadeSelecionada || prioridade === prioridadeSelecionada;
@@ -531,7 +622,7 @@ function aplicarFiltros() {
       !statusSelecionado || status === statusSelecionado;
 
     const atendeSetor =
-      !setorSelecionado || setor === setorSelecionado;
+      !setorSelecionado || setoresLista.includes(setorSelecionado);
 
     let atendePrazo = true;
 
@@ -567,11 +658,32 @@ function limparFiltros() {
   aplicarFiltros();
 }
 
+async function carregarSetores() {
+  try {
+    const resposta = await fetch(`${API_BASE_URL}/setores`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const dados = await resposta.json();
+
+    if (!resposta.ok) {
+      return;
+    }
+
+    setoresCache = Array.isArray(dados) ? dados : [];
+    popularSelectSetores();
+  } catch (error) {
+    console.error("Erro ao carregar setores:", error);
+  }
+}
+
 async function carregarAtividades() {
   if (tabelaAtividades) {
     tabelaAtividades.innerHTML = `
       <tr>
-        <td colspan="10" class="empty-state">Carregando atividades.</td>
+        <td colspan="9" class="empty-state">Carregando atividades.</td>
       </tr>
     `;
   }
@@ -589,7 +701,7 @@ async function carregarAtividades() {
       if (tabelaAtividades) {
         tabelaAtividades.innerHTML = `
           <tr>
-            <td colspan="10" class="empty-state">
+            <td colspan="9" class="empty-state">
               ${escaparHtml(dados.erro || "Erro ao carregar atividades.")}
             </td>
           </tr>
@@ -605,7 +717,7 @@ async function carregarAtividades() {
     if (tabelaAtividades) {
       tabelaAtividades.innerHTML = `
         <tr>
-          <td colspan="10" class="empty-state">Erro ao conectar com o servidor.</td>
+          <td colspan="9" class="empty-state">Erro ao conectar com o servidor.</td>
         </tr>
       `;
     }
@@ -707,16 +819,9 @@ tabelaAtividades?.addEventListener("click", async (event) => {
   }
 });
 
-tabelaAtividades?.addEventListener("click", (e) => {
-  const linha = e.target.closest(".linha-principal");
-  if (!linha) return;
+async function iniciarPagina() {
+  await carregarSetores();
+  await carregarAtividades();
+}
 
-  const id = linha.dataset.id;
-  const desc = document.getElementById(`desc-${id}`);
-
-  if (desc) {
-    desc.classList.toggle("hidden");
-  }
-});
-
-carregarAtividades();
+iniciarPagina();

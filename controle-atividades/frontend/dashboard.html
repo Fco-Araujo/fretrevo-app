@@ -30,6 +30,7 @@
           <a href="./indicadores.html" class="nav-link">Indicadores</a>
           <a href="./prazos.html" class="nav-link">Atrasos</a>
           <a href="./usuarios.html" id="menuUsuariosLink" class="nav-link hidden">Usuários</a>
+          <a href="./setores.html" id="menuSetoresLink" class="nav-link">Setores</a>
         </nav>
       </div>
 
@@ -221,14 +222,21 @@
             <input type="date" id="prazo" />
           </div>
 
-          <div class="input-group">
-            <label for="setor">Setor</label>
-            <input
-              type="text"
-              id="setor"
-              placeholder="Ex: PCP, Expedição, Estoque"
-            />
-          </div>
+          <div class="input-group input-group-full">
+  <label for="setorSelect">Setores</label>
+
+  <div class="setor-picker">
+    <select id="setorSelect">
+      <option value="">Selecione um setor</option>
+    </select>
+
+    <button type="button" id="adicionarSetorBtn" class="btn btn-outline">
+      +
+    </button>
+  </div>
+
+  <div id="setoresSelecionados" class="setores-selecionados"></div>
+</div>
 
           <div class="input-group">
             <label for="dataReuniao">Marcar reunião</label>

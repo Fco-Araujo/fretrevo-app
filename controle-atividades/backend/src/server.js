@@ -4,15 +4,13 @@ import { supabase } from "./config/supabase.js";
 import authRoutes from "./routes/authRoutes.js";
 import atividadeRoutes from "./routes/atividadeRoutes.js";
 import usuarioRoutes from "./routes/usuarioRoutes.js";
+import setorRoutes from "./routes/setorRoutes.js";
 import { verificarToken } from "./middleware/authMiddleware.js";
 
 dotenv.config();
 
 const app = express();
 
-/**
- * CORS manual
- */
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
   res.header("Vary", "Origin");
@@ -31,6 +29,7 @@ app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/atividades", atividadeRoutes);
 app.use(usuarioRoutes);
+app.use(setorRoutes);
 
 app.get("/", (req, res) => {
   res.send("API rodando 🚀");

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setores | Controle de Atividades</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body class="dashboard-body">
+  <div class="app-layout app-layout-fixed">
+    <aside class="sidebar sidebar-fixed">
+      <div class="sidebar-top">
+        <div class="logo-area">
+          <div class="logo-icon">CA</div>
+          <div class="sidebar-user-box">
+            <strong id="boasVindas">Usuário</strong>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="./dashboard.html" class="nav-link">Cadastrar atividades</a>
+          <a href="./indicadores.html" class="nav-link">Indicadores</a>
+          <a href="./prazos.html" class="nav-link">Atrasos</a>
+          <a href="./usuarios.html" id="menuUsuariosLink" class="nav-link hidden">Usuários</a>
+          <a href="./setores.html" id="menuSetoresLink" class="nav-link">Setores</a>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button id="logoutBtn" class="btn btn-outline btn-full">Sair</button>
+      </div>
+    </aside>
+
+    <main class="content content-scroll">
+      <section class="panel">
+        <div class="panel-header panel-header-table">
+          <div>
+            <h2>Cadastro de Setores</h2>
+            <p>Padronize os setores usados nas atividades</p>
+          </div>
+        </div>
+
+        <form id="setorForm" class="form">
+          <div class="form-grid">
+            <div class="input-group">
+              <label for="nomeSetor">Nome do setor</label>
+              <input
+                type="text"
+                id="nomeSetor"
+                placeholder="Ex: Controle de Estoque"
+                required
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="ativoSetor">Status</label>
+              <select id="ativoSetor">
+                <option value="true">Ativo</option>
+                <option value="false">Inativo</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="modal-actions" style="margin-top: 16px;">
+            <button type="button" id="cancelarEdicaoSetorBtn" class="btn btn-outline hidden">
+              Cancelar edição
+            </button>
+            <button type="submit" id="salvarSetorBtn" class="btn btn-primary">
+              Salvar setor
+            </button>
+          </div>
+
+          <p id="setorMensagem" class="form-message"></p>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Setores cadastrados</h2>
+            <p>Lista de setores disponíveis no sistema</p>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>NOME</th>
+                <th>STATUS</th>
+                <th>CRIADO EM</th>
+                <th>AÇÕES</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaSetores">
+              <tr>
+                <td colspan="4" class="empty-state">Carregando setores.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./js/setores.js"></script>
+</body>
+</html>

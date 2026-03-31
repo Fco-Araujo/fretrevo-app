@@ -1532,3 +1532,53 @@ a {
   white-space: normal;
   word-break: break-word;
 }
+.form-message {
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.form-message.erro {
+  color: #ef4444;
+}
+
+.form-message.sucesso {
+  color: #22c55e;
+}
+.setor-picker {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.setor-picker select {
+  flex: 1;
+}
+
+.setores-selecionados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.setor-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.12);
+  color: #93c5fd;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.remover-setor-btn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
