@@ -45,27 +45,29 @@ const setorInput = document.getElementById("setor");
 const dataReuniaoInput = document.getElementById("dataReuniao");
 
 const modalTitulo = document.querySelector(".modal-header h3");
-const botaoSubmitModal = atividadeForm.querySelector('button[type="submit"]');
+const botaoSubmitModal = atividadeForm?.querySelector('button[type="submit"]');
 
 let atividadesCache = [];
 let modoEdicao = false;
 let atividadeEditandoId = null;
 
-boasVindas.textContent = usuario?.nome || "Usuário";
+if (boasVindas) {
+  boasVindas.textContent = usuario?.nome || "Usuário";
+}
 
 if (ehAdmin && menuUsuariosLink) {
   menuUsuariosLink.classList.remove("hidden");
 }
 
-logoutBtn.addEventListener("click", () => {
+logoutBtn?.addEventListener("click", () => {
   localStorage.removeItem("token");
   localStorage.removeItem("usuario");
   window.location.href = "./index.html";
 });
 
-abrirModalBtn.addEventListener("click", () => {
+abrirModalBtn?.addEventListener("click", () => {
   prepararModalNovaAtividade();
-  modalOverlay.classList.remove("hidden");
+  modalOverlay?.classList.remove("hidden");
 });
 
 fecharModalBtn?.addEventListener("click", fecharModal);
@@ -88,20 +90,20 @@ limparFiltrosBtn?.addEventListener("click", limparFiltros);
 
 atividadeForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
-  atividadeMensagem.textContent = "";
+  limparMensagemFormulario();
 
   const payload = {
-    titulo: tituloInput.value.trim(),
-    descricao: descricaoInput.value.trim(),
-    prioridade: prioridadeInput.value || null,
-    status: statusInput.value || null,
-    prazo: prazoInput.value || null,
-    setor: setorInput.value.trim() || null,
-    data_reuniao: dataReuniaoInput.value || null
+    titulo: tituloInput?.value.trim() || "",
+    descricao: descricaoInput?.value.trim() || "",
+    prioridade: prioridadeInput?.value || null,
+    status: statusInput?.value || null,
+    prazo: prazoInput?.value || null,
+    setor: setorInput?.value.trim() || null,
+    data_reuniao: dataReuniaoInput?.value || null
   };
 
   if (!payload.titulo) {
-    atividadeMensagem.textContent = "O título é obrigatório.";
+    mostrarMensagemFormulario("O título é obrigatório.", "erro");
     return;
   }
 
@@ -124,73 +126,101 @@ atividadeForm?.addEventListener("submit", async (event) => {
     const dados = await resposta.json();
 
     if (!resposta.ok) {
-      atividadeMensagem.textContent = dados.erro || "Erro ao salvar atividade.";
+      mostrarMensagemFormulario(
+        dados.erro || "Erro ao salvar atividade.",
+        "erro"
+      );
       return;
     }
 
     atividadeForm.reset();
     resetarModoEdicao();
     fecharModal();
-    carregarAtividades();
-  } catch {
-    atividadeMensagem.textContent = "Erro ao conectar com o servidor.";
+    await carregarAtividades();
+  } catch (error) {
+    mostrarMensagemFormulario("Erro ao conectar com o servidor.", "erro");
   }
 });
 
+function mostrarMensagemFormulario(texto, tipo = "") {
+  if (!atividadeMensagem) return;
+  atividadeMensagem.textContent = texto;
+  atividadeMensagem.className = tipo
+    ? `form-message ${tipo}`
+    : "form-message";
+}
+
+function limparMensagemFormulario() {
+  if (!atividadeMensagem) return;
+  atividadeMensagem.textContent = "";
+  atividadeMensagem.className = "form-message";
+}
+
 function prepararModalNovaAtividade() {
   resetarModoEdicao();
-  atividadeForm.reset();
-  atividadeMensagem.textContent = "";
-  modalTitulo.textContent = "Nova atividade";
-  botaoSubmitModal.textContent = "Salvar atividade";
+  atividadeForm?.reset();
+  limparMensagemFormulario();
 
-  tituloInput.disabled = false;
-  prazoInput.disabled = false;
-  descricaoInput.disabled = false;
-  prioridadeInput.disabled = false;
-  statusInput.disabled = false;
-  setorInput.disabled = false;
-  dataReuniaoInput.disabled = false;
+  if (modalTitulo) modalTitulo.textContent = "Nova atividade";
+  if (botaoSubmitModal) botaoSubmitModal.textContent = "Salvar atividade";
+
+  if (tituloInput) tituloInput.disabled = false;
+  if (descricaoInput) descricaoInput.disabled = false;
+  if (prazoInput) prazoInput.disabled = false;
+  if (prioridadeInput) prioridadeInput.disabled = false;
+  if (statusInput) statusInput.disabled = false;
+  if (setorInput) setorInput.disabled = false;
+  if (dataReuniaoInput) dataReuniaoInput.disabled = false;
 }
 
 function prepararModalEdicao(atividade) {
   modoEdicao = true;
   atividadeEditandoId = atividade.id;
 
-  modalTitulo.textContent = "Editar atividade";
-  botaoSubmitModal.textContent = "Salvar alterações";
-  atividadeMensagem.textContent = "";
+  if (modalTitulo) modalTitulo.textContent = "Editar atividade";
+  if (botaoSubmitModal) botaoSubmitModal.textContent = "Salvar alterações";
 
-  tituloInput.value = atividade.titulo || "";
-  descricaoInput.value = atividade.descricao || "";
-  prioridadeInput.value = atividade.prioridade || "";
-  statusInput.value = normalizarStatusOriginal(atividade.status);
-  prazoInput.value = formatarDataParaInput(atividade.prazo);
-  setorInput.value = atividade.setor || "";
-  dataReuniaoInput.value = formatarDataParaInput(atividade.data_reuniao);
+  limparMensagemFormulario();
 
-  tituloInput.disabled = !ehAdmin;
-  prazoInput.disabled = !ehAdmin;
+  if (tituloInput) tituloInput.value = atividade.titulo || "";
+  if (descricaoInput) descricaoInput.value = atividade.descricao || "";
+  if (prioridadeInput) prioridadeInput.value = atividade.prioridade || "";
+  if (statusInput) statusInput.value = normalizarStatusOriginal(atividade.status);
+  if (prazoInput) prazoInput.value = formatarDataParaInput(atividade.prazo);
+  if (setorInput) setorInput.value = atividade.setor || "";
+  if (dataReuniaoInput) {
+    dataReuniaoInput.value = formatarDataParaInput(atividade.data_reuniao);
+  }
 
-  descricaoInput.disabled = false;
-  prioridadeInput.disabled = false;
-  statusInput.disabled = false;
-  setorInput.disabled = false;
-  dataReuniaoInput.disabled = false;
+  if (ehAdmin) {
+    if (tituloInput) tituloInput.disabled = false;
+    if (descricaoInput) descricaoInput.disabled = false;
+    if (prazoInput) prazoInput.disabled = false;
+  } else {
+    if (tituloInput) tituloInput.disabled = true;
+    if (descricaoInput) descricaoInput.disabled = true;
+    if (prazoInput) prazoInput.disabled = true;
+  }
 
-  modalOverlay.classList.remove("hidden");
+  if (prioridadeInput) prioridadeInput.disabled = false;
+  if (statusInput) statusInput.disabled = false;
+  if (setorInput) setorInput.disabled = false;
+  if (dataReuniaoInput) dataReuniaoInput.disabled = false;
+
+  modalOverlay?.classList.remove("hidden");
 }
 
 function resetarModoEdicao() {
   modoEdicao = false;
   atividadeEditandoId = null;
-  modalTitulo.textContent = "Nova atividade";
-  botaoSubmitModal.textContent = "Salvar atividade";
+
+  if (modalTitulo) modalTitulo.textContent = "Nova atividade";
+  if (botaoSubmitModal) botaoSubmitModal.textContent = "Salvar atividade";
 }
 
 function fecharModal() {
-  modalOverlay.classList.add("hidden");
-  atividadeMensagem.textContent = "";
+  modalOverlay?.classList.add("hidden");
+  limparMensagemFormulario();
 }
 
 function formatarData(data) {
@@ -314,15 +344,36 @@ function obterClassePrioridade(prioridade) {
   if (valor === "critica") return "priority-badge prioridade-critica";
   if (valor === "alta") return "priority-badge prioridade-alta";
   if (valor === "media") return "priority-badge prioridade-media";
-  return "priority-badge prioridade-baixa";
+  if (valor === "baixa") return "priority-badge prioridade-baixa";
+  return "priority-badge";
 }
 
 function atualizarCards(lista) {
-  cardTotal.textContent = lista.length;
-  cardPendentes.textContent = lista.filter((a) => normalizarTexto(statusEfetivo(a)) === "pendente").length;
-  cardAndamento.textContent = lista.filter((a) => normalizarTexto(statusEfetivo(a)) === "em andamento").length;
-  cardAtrasadas.textContent = lista.filter((a) => normalizarTexto(statusEfetivo(a)) === "atrasado").length;
-  cardConcluidas.textContent = lista.filter((a) => normalizarTexto(statusEfetivo(a)) === "concluida").length;
+  if (cardTotal) cardTotal.textContent = lista.length;
+
+  if (cardPendentes) {
+    cardPendentes.textContent = lista.filter(
+      (a) => normalizarTexto(statusEfetivo(a)) === "pendente"
+    ).length;
+  }
+
+  if (cardAndamento) {
+    cardAndamento.textContent = lista.filter(
+      (a) => normalizarTexto(statusEfetivo(a)) === "em andamento"
+    ).length;
+  }
+
+  if (cardAtrasadas) {
+    cardAtrasadas.textContent = lista.filter(
+      (a) => normalizarTexto(statusEfetivo(a)) === "atrasado"
+    ).length;
+  }
+
+  if (cardConcluidas) {
+    cardConcluidas.textContent = lista.filter(
+      (a) => normalizarTexto(statusEfetivo(a)) === "concluida"
+    ).length;
+  }
 }
 
 function popularFiltroSetor(lista) {
@@ -330,11 +381,13 @@ function popularFiltroSetor(lista) {
 
   const valorAtual = filtroSetor.value;
 
-  const setoresUnicos = [...new Set(
-    lista
-      .map((atividade) => (atividade.setor || "").trim())
-      .filter(Boolean)
-  )].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const setoresUnicos = [
+    ...new Set(
+      lista
+        .map((atividade) => (atividade.setor || "").trim())
+        .filter(Boolean)
+    )
+  ].sort((a, b) => a.localeCompare(b, "pt-BR"));
 
   filtroSetor.innerHTML = `<option value="">Todos</option>`;
 
@@ -349,6 +402,8 @@ function popularFiltroSetor(lista) {
 }
 
 function renderizarTabela(atividades) {
+  if (!tabelaAtividades) return;
+
   if (!atividades.length) {
     tabelaAtividades.innerHTML = `
       <tr>
@@ -358,78 +413,82 @@ function renderizarTabela(atividades) {
     return;
   }
 
-  tabelaAtividades.innerHTML = atividades.map((atividade) => {
-    const status = statusEfetivo(atividade);
-    const prioridade = atividade.prioridade || "-";
+  tabelaAtividades.innerHTML = atividades
+    .map((atividade) => {
+      const status = statusEfetivo(atividade);
+      const prioridade = atividade.prioridade || "-";
 
-    const responsavelNome =
-      atividade?.criador?.nome ||
-      atividade?.responsavel?.nome ||
-      usuario?.nome ||
-      "-";
+      const responsavelNome =
+        atividade?.criador?.nome ||
+        atividade?.responsavel?.nome ||
+        usuario?.nome ||
+        "-";
 
-    const setor = atividade.setor || "-";
-    const temReuniao = !!atividade.data_reuniao;
+      const setor = atividade.setor || "-";
+      const temReuniao = !!atividade.data_reuniao;
+      const atividadeConcluida = normalizarTexto(status) === "concluida";
 
-    const reuniaoHtml = temReuniao
-      ? `
-        <div class="reuniao-wrap">
-          <span class="reuniao-alerta"></span>
-          <span class="reuniao-data">${formatarData(atividade.data_reuniao)}</span>
+      const reuniaoHtml = temReuniao
+        ? `
+          <div class="reuniao-wrap">
+            ${!atividadeConcluida ? `<span class="reuniao-alerta"></span>` : ""}
+            <span class="reuniao-data">${formatarData(atividade.data_reuniao)}</span>
+          </div>
+        `
+        : `<span class="reuniao-vazia">-</span>`;
+
+      const botoesAcoes = `
+        <div class="acoes-botoes">
+          <button type="button" class="btn-acao" data-acao="editar" data-id="${atividade.id}">
+            Editar
+          </button>
+
+          ${
+            normalizarTexto(status) !== "concluida"
+              ? `
+                <button type="button" class="btn-acao btn-concluir" data-acao="concluir" data-id="${atividade.id}">
+                  Concluir
+                </button>
+              `
+              : ""
+          }
+
+          ${
+            ehAdmin
+              ? `
+                <button type="button" class="btn-acao btn-excluir" data-acao="excluir" data-id="${atividade.id}">
+                  Excluir
+                </button>
+              `
+              : ""
+          }
         </div>
-      `
-      : `<span class="reuniao-vazia">-</span>`;
+      `;
 
-    const botoesAcoes = `
-      <div class="acoes-botoes">
-        <button class="btn-acao" data-acao="editar" data-id="${atividade.id}">
-          Editar
-        </button>
-
-        ${
-          normalizarTexto(status) !== "concluida"
-            ? `<button class="btn-acao btn-concluir" data-acao="concluir" data-id="${atividade.id}">
-                Concluir
-              </button>`
-            : ""
-        }
-
-        ${
-          ehAdmin
-            ? `<button class="btn-acao btn-excluir" data-acao="excluir" data-id="${atividade.id}">
-                Excluir
-              </button>`
-            : ""
-        }
-      </div>
-    `;
-
-    return `
-      <tr>
-        <td>${escaparHtml(responsavelNome)}</td>
-        <td>${escaparHtml(atividade.titulo || "-")}</td>
-        <td>${escaparHtml(atividade.descricao || "-")}</td>
-        <td>${escaparHtml(setor)}</td>
-
-        <td>
-          <span class="${obterClassePrioridade(prioridade)}">
-            ${escaparHtml(prioridade)}
-          </span>
-        </td>
-
-        <td>
-          <span class="${obterClasseStatus(status)}">
-            ${escaparHtml(status)}
-          </span>
-        </td>
-
-        <td>${formatarData(atividade.data_criacao)}</td>
-        <td>${formatarData(atividade.prazo)}</td>
-        <td>${reuniaoHtml}</td>
-        <td>${botoesAcoes}</td>
-      </tr>
-    `;
-  }).join("");
+      return `
+        <tr>
+          <td>${escaparHtml(responsavelNome)}</td>
+          <td>${escaparHtml(atividade.titulo || "-")}</td>
+          <td>${escaparHtml(atividade.descricao || "-")}</td>
+          <td>${escaparHtml(setor)}</td>
+          <td>
+            <span class="${obterClassePrioridade(prioridade)}">
+              ${escaparHtml(prioridade)}
+            </span>
+          </td>
+          <td>
+            <span class="${obterClasseStatus(status)}">
+              ${escaparHtml(status)}
+            </span>
+          </td>
+          <td>${formatarData(atividade.data_criacao)}</td>
+          <td>${formatarData(atividade.prazo)}</td>
+          <td>${reuniaoHtml}</td>
+          <td>${botoesAcoes}</td>
+        </tr>
+      `;
+    })
+    .join("");
 }
 
 function aplicarFiltros() {
@@ -455,18 +514,34 @@ function aplicarFiltros() {
       descricao.includes(termoBusca) ||
       setor.includes(termoBusca);
 
-    const atendePrioridade = !prioridadeSelecionada || prioridade === prioridadeSelecionada;
-    const atendeStatus = !statusSelecionado || status === statusSelecionado;
-    const atendeSetor = !setorSelecionado || setor === setorSelecionado;
+    const atendePrioridade =
+      !prioridadeSelecionada || prioridade === prioridadeSelecionada;
+
+    const atendeStatus =
+      !statusSelecionado || status === statusSelecionado;
+
+    const atendeSetor =
+      !setorSelecionado || setor === setorSelecionado;
 
     let atendePrazo = true;
 
-    if (prazoSelecionado === "sem-prazo") atendePrazo = !prazo;
-    else if (prazoSelecionado === "hoje") atendePrazo = !!prazo && prazo.getTime() === hoje.getTime();
-    else if (prazoSelecionado === "vencidas") atendePrazo = !!prazo && prazo < hoje;
-    else if (prazoSelecionado === "proximas") atendePrazo = !!prazo && prazo >= hoje;
+    if (prazoSelecionado === "sem-prazo") {
+      atendePrazo = !prazo;
+    } else if (prazoSelecionado === "hoje") {
+      atendePrazo = !!prazo && prazo.getTime() === hoje.getTime();
+    } else if (prazoSelecionado === "vencidas") {
+      atendePrazo = !!prazo && prazo < hoje;
+    } else if (prazoSelecionado === "proximas") {
+      atendePrazo = !!prazo && prazo >= hoje;
+    }
 
-    return atendeBusca && atendePrioridade && atendeStatus && atendePrazo && atendeSetor;
+    return (
+      atendeBusca &&
+      atendePrioridade &&
+      atendeStatus &&
+      atendePrazo &&
+      atendeSetor
+    );
   });
 
   atualizarCards(atividadesFiltradas);
@@ -483,11 +558,13 @@ function limparFiltros() {
 }
 
 async function carregarAtividades() {
-  tabelaAtividades.innerHTML = `
-    <tr>
-      <td colspan="10" class="empty-state">Carregando atividades.</td>
-    </tr>
-  `;
+  if (tabelaAtividades) {
+    tabelaAtividades.innerHTML = `
+      <tr>
+        <td colspan="10" class="empty-state">Carregando atividades.</td>
+      </tr>
+    `;
+  }
 
   try {
     const resposta = await fetch(`${API_BASE_URL}/atividades`, {
@@ -499,23 +576,29 @@ async function carregarAtividades() {
     const dados = await resposta.json();
 
     if (!resposta.ok) {
-      tabelaAtividades.innerHTML = `
-        <tr>
-          <td colspan="10" class="empty-state">${escaparHtml(dados.erro || "Erro ao carregar atividades.")}</td>
-        </tr>
-      `;
+      if (tabelaAtividades) {
+        tabelaAtividades.innerHTML = `
+          <tr>
+            <td colspan="10" class="empty-state">
+              ${escaparHtml(dados.erro || "Erro ao carregar atividades.")}
+            </td>
+          </tr>
+        `;
+      }
       return;
     }
 
     atividadesCache = Array.isArray(dados) ? dados : [];
     popularFiltroSetor(atividadesCache);
     aplicarFiltros();
-  } catch {
-    tabelaAtividades.innerHTML = `
-      <tr>
-        <td colspan="10" class="empty-state">Erro ao conectar com o servidor.</td>
-      </tr>
-    `;
+  } catch (error) {
+    if (tabelaAtividades) {
+      tabelaAtividades.innerHTML = `
+        <tr>
+          <td colspan="10" class="empty-state">Erro ao conectar com o servidor.</td>
+        </tr>
+      `;
+    }
   }
 }
 
@@ -527,14 +610,23 @@ tabelaAtividades?.addEventListener("click", async (event) => {
 
   if (acao === "editar") {
     const atividade = atividadesCache.find((item) => String(item.id) === String(id));
-    if (!atividade) return alert("Atividade não encontrada.");
+
+    if (!atividade) {
+      alert("Atividade não encontrada.");
+      return;
+    }
+
     prepararModalEdicao(atividade);
     return;
   }
 
   if (acao === "concluir") {
     const atividade = atividadesCache.find((item) => String(item.id) === String(id));
-    if (!atividade) return alert("Atividade não encontrada.");
+
+    if (!atividade) {
+      alert("Atividade não encontrada.");
+      return;
+    }
 
     const confirmar = confirm("Deseja marcar esta atividade como concluída?");
     if (!confirmar) return;
@@ -560,10 +652,14 @@ tabelaAtividades?.addEventListener("click", async (event) => {
       });
 
       const dados = await resposta.json();
-      if (!resposta.ok) return alert(dados.erro || "Erro ao concluir atividade.");
 
-      carregarAtividades();
-    } catch {
+      if (!resposta.ok) {
+        alert(dados.erro || "Erro ao concluir atividade.");
+        return;
+      }
+
+      await carregarAtividades();
+    } catch (error) {
       alert("Erro ao conectar com o servidor.");
     }
 
@@ -571,7 +667,10 @@ tabelaAtividades?.addEventListener("click", async (event) => {
   }
 
   if (acao === "excluir") {
-    if (!ehAdmin) return alert("Somente administradores podem excluir atividades.");
+    if (!ehAdmin) {
+      alert("Somente administradores podem excluir atividades.");
+      return;
+    }
 
     const confirmar = confirm("Deseja excluir esta atividade?");
     if (!confirmar) return;
@@ -585,10 +684,14 @@ tabelaAtividades?.addEventListener("click", async (event) => {
       });
 
       const dados = await resposta.json();
-      if (!resposta.ok) return alert(dados.erro || "Erro ao excluir atividade.");
 
-      carregarAtividades();
-    } catch {
+      if (!resposta.ok) {
+        alert(dados.erro || "Erro ao excluir atividade.");
+        return;
+      }
+
+      await carregarAtividades();
+    } catch (error) {
       alert("Erro ao conectar com o servidor.");
     }
   }

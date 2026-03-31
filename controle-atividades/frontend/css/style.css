@@ -1352,3 +1352,149 @@ a {
     font-size: 13px;
   }
 }
+.form-message {
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.form-message.erro {
+  color: #ef4444;
+}
+
+.form-message.sucesso {
+  color: #22c55e;
+}
+/* ===== BADGES DE PRIORIDADE ===== */
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 82px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: lowercase;
+  white-space: nowrap;
+}
+
+.prioridade-baixa {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
+}
+
+.prioridade-media {
+  background: rgba(234, 179, 8, 0.18);
+  color: #facc15;
+}
+
+.prioridade-alta {
+  background: rgba(249, 115, 22, 0.18);
+  color: #fdba74;
+}
+
+.prioridade-critica {
+  background: rgba(244, 63, 94, 0.18);
+  color: #fda4af;
+}
+
+/* ===== BADGES DE STATUS ===== */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 116px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-transform: lowercase;
+}
+
+.status-pendente {
+  background: rgba(148, 163, 184, 0.16);
+  color: #cbd5e1;
+}
+
+.status-andamento {
+  background: rgba(59, 130, 246, 0.18);
+  color: #93c5fd;
+}
+
+.status-atrasado {
+  background: rgba(239, 68, 68, 0.18);
+  color: #fca5a5;
+}
+
+.status-concluida {
+  background: rgba(34, 197, 94, 0.18);
+  color: #86efac;
+}
+/* ===== BADGES PRIORIDADE E STATUS ===== */
+.modern-table td .priority-badge,
+.modern-table td .status-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  line-height: 1 !important;
+}
+
+.modern-table td .priority-badge {
+  min-width: 82px !important;
+  padding: 8px 14px !important;
+  font-size: 14px !important;
+  text-transform: lowercase !important;
+}
+
+.modern-table td .status-chip {
+  min-width: 116px !important;
+  padding: 9px 16px !important;
+  font-size: 14px !important;
+  text-transform: lowercase !important;
+}
+
+/* PRIORIDADES */
+.modern-table td .prioridade-baixa {
+  background: rgba(34, 197, 94, 0.18) !important;
+  color: #86efac !important;
+}
+
+.modern-table td .prioridade-media {
+  background: rgba(234, 179, 8, 0.18) !important;
+  color: #facc15 !important;
+}
+
+.modern-table td .prioridade-alta {
+  background: rgba(249, 115, 22, 0.18) !important;
+  color: #fdba74 !important;
+}
+
+.modern-table td .prioridade-critica {
+  background: rgba(244, 63, 94, 0.18) !important;
+  color: #fda4af !important;
+}
+
+/* STATUS */
+.modern-table td .status-pendente {
+  background: rgba(148, 163, 184, 0.16) !important;
+  color: #cbd5e1 !important;
+}
+
+.modern-table td .status-andamento {
+  background: rgba(59, 130, 246, 0.18) !important;
+  color: #93c5fd !important;
+}
+
+.modern-table td .status-atrasado {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #fca5a5 !important;
+}
+
+.modern-table td .status-concluida {
+  background: rgba(34, 197, 94, 0.18) !important;
+  color: #86efac !important;
+}

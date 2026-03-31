@@ -140,10 +140,8 @@ export async function atualizarAtividade(req, res) {
       return res.status(404).json({ erro: "Atividade não encontrada." });
     }
 
-    const ehAdmin = usuario.perfil === "admin";
-
     const podeEditar =
-      ehAdmin ||
+      usuario.perfil === "admin" ||
       atividade.criado_por === usuario.id ||
       atividade.responsavel_id === usuario.id;
 
@@ -153,36 +151,37 @@ export async function atualizarAtividade(req, res) {
       });
     }
 
-    if (!ehAdmin) {
-      const alterouTitulo =
-        titulo !== undefined && titulo !== atividade.titulo;
+    const ehAdmin = usuario.perfil === "admin";
 
-      const alterouPrazo =
-        prazo !== undefined &&
-        String(prazo || "") !== String(atividade.prazo || "");
+    let dadosAtualizados = {};
 
-      if (alterouTitulo || alterouPrazo) {
-        return res.status(403).json({
-          erro: "Usuário comum não pode editar título ou prazo."
-        });
-      }
+    if (ehAdmin) {
+      dadosAtualizados = {
+        titulo: titulo ?? atividade.titulo,
+        descricao: descricao ?? atividade.descricao,
+        prioridade: prioridade ?? atividade.prioridade,
+        status: status ?? atividade.status,
+        prazo: prazo ?? atividade.prazo,
+        tipo: tipo ?? atividade.tipo,
+        origem: origem ?? atividade.origem,
+        observacoes: observacoes ?? atividade.observacoes,
+        setor: setor ?? atividade.setor,
+        data_reuniao:
+          data_reuniao !== undefined ? data_reuniao : atividade.data_reuniao
+      };
+    } else {
+      dadosAtualizados = {
+        prioridade: prioridade ?? atividade.prioridade,
+        status: status ?? atividade.status,
+        setor: setor ?? atividade.setor,
+        data_reuniao:
+          data_reuniao !== undefined ? data_reuniao : atividade.data_reuniao
+      };
     }
 
-    const dadosAtualizados = {
-      titulo: ehAdmin ? (titulo ?? atividade.titulo) : atividade.titulo,
-      descricao: descricao ?? atividade.descricao,
-      prioridade: prioridade ?? atividade.prioridade,
-      status: status ?? atividade.status,
-      prazo: ehAdmin ? (prazo ?? atividade.prazo) : atividade.prazo,
-      tipo: tipo ?? atividade.tipo,
-      origem: origem ?? atividade.origem,
-      observacoes: observacoes ?? atividade.observacoes,
-      setor: setor ?? atividade.setor,
-      data_reuniao:
-        data_reuniao !== undefined ? data_reuniao : atividade.data_reuniao
-    };
+    const statusFinal = dadosAtualizados.status;
 
-    if (status === "concluída" || status === "concluida") {
+    if (statusFinal === "concluída" || statusFinal === "concluida") {
       dadosAtualizados.data_conclusao = new Date().toISOString();
     }
 
