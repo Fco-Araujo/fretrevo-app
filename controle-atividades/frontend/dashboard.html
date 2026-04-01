@@ -65,6 +65,21 @@
           <span class="stat-label">Concluídas</span>
           <strong id="cardConcluidas">0</strong>
         </article>
+
+        <article class="stat-card">
+          <span class="stat-label">Qualidade</span>
+          <strong id="cardQualidade">0</strong>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-label">Diversos</span>
+          <strong id="cardDiversos">0</strong>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-label">Reunião</span>
+          <strong id="cardReuniao">0</strong>
+        </article>
       </section>
 
       <section class="panel filtros-panel">
@@ -81,8 +96,18 @@
             <input
               type="text"
               id="filtroBusca"
-              placeholder="Digite título, descrição ou setor"
+              placeholder="Digite título, descrição, setor ou tipo"
             />
+          </div>
+
+          <div class="input-group">
+            <label for="filtroTipo">Tipo</label>
+            <select id="filtroTipo">
+              <option value="">Todos</option>
+              <option value="QUALIDADE">Qualidade</option>
+              <option value="DIVERSOS">Diversos</option>
+              <option value="REUNIÃO">Reunião</option>
+            </select>
           </div>
 
           <div class="input-group">
@@ -150,26 +175,24 @@
 
         <div class="table-wrapper">
           <table class="modern-table">
-        <thead>
-          <tr>
-            <th>RESPONSÁVEL</th>
-            <th>ATIVIDADE</th>
-            <th>SETOR</th>
-            <th>PRIORIDADE</th>
-            <th>STATUS</th>
-            <th>CRIAÇÃO</th>
-            <th>PRAZO</th>
-            <th>REUNIÃO</th>
-            <th>AÇÕES</th>
-          </tr>
-        </thead>
+            <thead>
+              <tr>
+                <th>RESPONSÁVEL</th>
+                <th>ATIVIDADE</th>
+                <th>SETOR</th>
+                <th>TIPO</th>
+                <th>PRIORIDADE</th>
+                <th>STATUS</th>
+                <th>CRIAÇÃO</th>
+                <th>PRAZO</th>
+                <th>AÇÕES</th>
+              </tr>
+            </thead>
 
-  <tbody id="tabelaAtividades">
-    <tr>
-      <td colspan="9" class="empty-state">Carregando atividades.</td>
-    </tr>
-  </tbody>
-</table>
+            <tbody id="tabelaAtividades">
+              <tr>
+                <td colspan="9" class="empty-state">Carregando atividades.</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -194,6 +217,16 @@
               placeholder="Digite o título da atividade"
               required
             />
+          </div>
+
+          <div class="input-group">
+            <label for="tipo">Tipo</label>
+            <select id="tipo">
+              <option value="">Selecione</option>
+              <option value="QUALIDADE">Qualidade</option>
+              <option value="DIVERSOS">Diversos</option>
+              <option value="REUNIÃO">Reunião</option>
+            </select>
           </div>
 
           <div class="input-group">
@@ -223,20 +256,20 @@
           </div>
 
           <div class="input-group input-group-full">
-  <label for="setorSelect">Setores</label>
+            <label for="setorSelect">Setores</label>
 
-  <div class="setor-picker">
-    <select id="setorSelect">
-      <option value="">Selecione um setor</option>
-    </select>
+            <div class="setor-picker">
+              <select id="setorSelect">
+                <option value="">Selecione um setor</option>
+              </select>
 
-    <button type="button" id="adicionarSetorBtn" class="btn btn-outline">
-      +
-    </button>
-  </div>
+              <button type="button" id="adicionarSetorBtn" class="btn btn-outline">
+                +
+              </button>
+            </div>
 
-  <div id="setoresSelecionados" class="setores-selecionados"></div>
-</div>
+            <div id="setoresSelecionados" class="setores-selecionados"></div>
+          </div>
 
           <div class="input-group">
             <label for="dataReuniao">Marcar reunião</label>
@@ -250,6 +283,15 @@
             id="descricao"
             rows="4"
             placeholder="Descreva a atividade"
+          ></textarea>
+        </div>
+
+        <div class="input-group">
+          <label for="observacoes">Observações</label>
+          <textarea
+            id="observacoes"
+            rows="3"
+            placeholder="Digite observações importantes"
           ></textarea>
         </div>
 

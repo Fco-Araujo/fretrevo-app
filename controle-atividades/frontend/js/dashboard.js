@@ -17,12 +17,16 @@ const cardPendentes = document.getElementById("cardPendentes");
 const cardAndamento = document.getElementById("cardAndamento");
 const cardAtrasadas = document.getElementById("cardAtrasadas");
 const cardConcluidas = document.getElementById("cardConcluidas");
+const cardQualidade = document.getElementById("cardQualidade");
+const cardDiversos = document.getElementById("cardDiversos");
+const cardReuniao = document.getElementById("cardReuniao");
 
 const logoutBtn = document.getElementById("logoutBtn");
 const recarregarBtn = document.getElementById("recarregarBtn");
 const limparFiltrosBtn = document.getElementById("limparFiltrosBtn");
 
 const filtroBusca = document.getElementById("filtroBusca");
+const filtroTipo = document.getElementById("filtroTipo");
 const filtroPrioridade = document.getElementById("filtroPrioridade");
 const filtroStatus = document.getElementById("filtroStatus");
 const filtroPrazo = document.getElementById("filtroPrazo");
@@ -38,6 +42,8 @@ const atividadeMensagem = document.getElementById("atividadeMensagem");
 
 const tituloInput = document.getElementById("titulo");
 const descricaoInput = document.getElementById("descricao");
+const observacoesInput = document.getElementById("observacoes");
+const tipoInput = document.getElementById("tipo");
 const prioridadeInput = document.getElementById("prioridade");
 const statusInput = document.getElementById("status");
 const prazoInput = document.getElementById("prazo");
@@ -93,7 +99,14 @@ recarregarBtn?.addEventListener("click", async () => {
 
 limparFiltrosBtn?.addEventListener("click", limparFiltros);
 
-[filtroBusca, filtroPrioridade, filtroStatus, filtroPrazo, filtroSetor].forEach((elemento) => {
+[
+  filtroBusca,
+  filtroTipo,
+  filtroPrioridade,
+  filtroStatus,
+  filtroPrazo,
+  filtroSetor
+].forEach((elemento) => {
   if (!elemento) return;
   elemento.addEventListener("input", aplicarFiltros);
   elemento.addEventListener("change", aplicarFiltros);
@@ -120,6 +133,8 @@ atividadeForm?.addEventListener("submit", async (event) => {
   const payload = {
     titulo: tituloInput?.value.trim() || "",
     descricao: descricaoInput?.value.trim() || "",
+    observacoes: observacoesInput?.value.trim() || null,
+    tipo: tipoInput?.value || null,
     prioridade: prioridadeInput?.value || null,
     status: statusInput?.value || null,
     prazo: prazoInput?.value || null,
@@ -194,6 +209,8 @@ function prepararModalNovaAtividade() {
 
   if (tituloInput) tituloInput.disabled = false;
   if (descricaoInput) descricaoInput.disabled = false;
+  if (observacoesInput) observacoesInput.disabled = false;
+  if (tipoInput) tipoInput.disabled = false;
   if (prazoInput) prazoInput.disabled = false;
   if (prioridadeInput) prioridadeInput.disabled = false;
   if (statusInput) statusInput.disabled = false;
@@ -213,6 +230,8 @@ function prepararModalEdicao(atividade) {
 
   if (tituloInput) tituloInput.value = atividade.titulo || "";
   if (descricaoInput) descricaoInput.value = atividade.descricao || "";
+  if (observacoesInput) observacoesInput.value = atividade.observacoes || "";
+  if (tipoInput) tipoInput.value = atividade.tipo || "";
   if (prioridadeInput) prioridadeInput.value = atividade.prioridade || "";
   if (statusInput) statusInput.value = normalizarStatusOriginal(atividade.status);
   if (prazoInput) prazoInput.value = formatarDataParaInput(atividade.prazo);
@@ -233,6 +252,8 @@ function prepararModalEdicao(atividade) {
     if (prazoInput) prazoInput.disabled = true;
   }
 
+  if (observacoesInput) observacoesInput.disabled = false;
+  if (tipoInput) tipoInput.disabled = false;
   if (prioridadeInput) prioridadeInput.disabled = false;
   if (statusInput) statusInput.disabled = false;
   if (setorSelect) setorSelect.disabled = false;
@@ -376,6 +397,12 @@ function obterHojeSemHora() {
   return new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
 }
 
+function diferencaEmDias(dataInicial, dataFinal) {
+  if (!dataInicial || !dataFinal) return null;
+  const msPorDia = 1000 * 60 * 60 * 24;
+  return Math.round((dataFinal.getTime() - dataInicial.getTime()) / msPorDia);
+}
+
 function statusEfetivo(atividade) {
   const statusOriginal = normalizarStatusOriginal(atividade.status);
 
@@ -427,6 +454,77 @@ function obterClassePrioridade(prioridade) {
   return "priority-badge";
 }
 
+function obterIndicadorPrazo(atividade) {
+  const prazo = obterDataSemHora(atividade.prazo);
+  const hoje = obterHojeSemHora();
+  const status = normalizarTexto(statusEfetivo(atividade));
+
+  if (!prazo || status === "concluida") {
+    return "";
+  }
+
+  const diasRestantes = diferencaEmDias(hoje, prazo);
+
+  if (diasRestantes < 0) {
+    return `<span class="prazo-alerta prazo-alerta-vermelho" title="Prazo atrasado"></span>`;
+  }
+
+  if (diasRestantes <= 2) {
+    return `<span class="prazo-alerta prazo-alerta-laranja" title="Prazo próximo do vencimento"></span>`;
+  }
+
+  return "";
+}
+
+function obterIconesInformativos(atividade) {
+  const statusAtual = normalizarTexto(atividade.status || "");
+  const statusEfetivoAtual = normalizarTexto(statusEfetivo(atividade));
+
+  const atividadeConcluida =
+    statusAtual === "concluida" ||
+    statusEfetivoAtual === "concluida";
+
+  if (atividadeConcluida) {
+    return "";
+  }
+
+  const possuiObservacoes = !!String(atividade.observacoes || "").trim();
+  const possuiReuniaoPendente = !!atividade.data_reuniao;
+
+  let html = `<div class="info-icons-wrap">`;
+
+  if (possuiReuniaoPendente) {
+    html += `
+      <button
+        type="button"
+        class="info-icon-btn info-icon-reuniao pulse-icon"
+        data-acao="ver-reuniao"
+        data-id="${atividade.id}"
+        title="Ver reunião"
+      >
+        📅
+      </button>
+    `;
+  }
+
+  if (possuiObservacoes) {
+    html += `
+      <button
+        type="button"
+        class="info-icon-btn info-icon-observacao pulse-icon"
+        data-acao="ver-observacao"
+        data-id="${atividade.id}"
+        title="Ver observação"
+      >
+        📝
+      </button>
+    `;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
 function atualizarCards(lista) {
   if (cardTotal) cardTotal.textContent = lista.length;
 
@@ -451,6 +549,24 @@ function atualizarCards(lista) {
   if (cardConcluidas) {
     cardConcluidas.textContent = lista.filter(
       (a) => normalizarTexto(statusEfetivo(a)) === "concluida"
+    ).length;
+  }
+
+  if (cardQualidade) {
+    cardQualidade.textContent = lista.filter(
+      (a) => normalizarTexto(a.tipo) === "qualidade"
+    ).length;
+  }
+
+  if (cardDiversos) {
+    cardDiversos.textContent = lista.filter(
+      (a) => normalizarTexto(a.tipo) === "diversos"
+    ).length;
+  }
+
+  if (cardReuniao) {
+    cardReuniao.textContent = lista.filter(
+      (a) => normalizarTexto(a.tipo) === "reuniao"
     ).length;
   }
 }
@@ -510,6 +626,7 @@ function renderizarTabela(atividades) {
   tabelaAtividades.innerHTML = atividades
     .map((atividade) => {
       const status = statusEfetivo(atividade);
+      const tipo = atividade.tipo || "-";
       const prioridade = atividade.prioridade || "-";
 
       const responsavelNome =
@@ -519,17 +636,8 @@ function renderizarTabela(atividades) {
         "-";
 
       const setoresTexto = atividade.setor || "-";
-      const temReuniao = !!atividade.data_reuniao;
-      const atividadeConcluida = normalizarTexto(status) === "concluida";
-
-      const reuniaoHtml = temReuniao
-        ? `
-          <div class="reuniao-wrap">
-            ${!atividadeConcluida ? `<span class="reuniao-alerta"></span>` : ""}
-            <span>${formatarData(atividade.data_reuniao)}</span>
-          </div>
-        `
-        : `-`;
+      const prazoIndicador = obterIndicadorPrazo(atividade);
+      const iconesInformativos = obterIconesInformativos(atividade);
 
       const botoesAcoes = `
         <div class="acoes-botoes">
@@ -557,7 +665,12 @@ function renderizarTabela(atividades) {
 
       return `
         <tr>
-          <td>${escaparHtml(responsavelNome)}</td>
+          <td>
+            <div class="responsavel-wrap">
+              <span>${escaparHtml(responsavelNome)}</span>
+              ${iconesInformativos}
+            </div>
+          </td>
           <td>
             <div class="atividade-titulo">
               ${escaparHtml(atividade.titulo || "-")}
@@ -572,6 +685,7 @@ function renderizarTabela(atividades) {
             }
           </td>
           <td>${escaparHtml(setoresTexto)}</td>
+          <td>${escaparHtml(tipo)}</td>
           <td>
             <span class="${obterClassePrioridade(prioridade)}">
               ${escaparHtml(prioridade)}
@@ -583,8 +697,12 @@ function renderizarTabela(atividades) {
             </span>
           </td>
           <td>${formatarData(atividade.data_criacao)}</td>
-          <td>${formatarData(atividade.prazo)}</td>
-          <td>${reuniaoHtml}</td>
+          <td>
+            <div class="prazo-wrap">
+              ${prazoIndicador}
+              <span>${formatarData(atividade.prazo)}</span>
+            </div>
+          </td>
           <td>${botoesAcoes}</td>
         </tr>
       `;
@@ -594,6 +712,7 @@ function renderizarTabela(atividades) {
 
 function aplicarFiltros() {
   const termoBusca = normalizarTexto(filtroBusca?.value || "");
+  const tipoSelecionado = normalizarTexto(filtroTipo?.value || "");
   const prioridadeSelecionada = normalizarTexto(filtroPrioridade?.value || "");
   const statusSelecionado = normalizarTexto(filtroStatus?.value || "");
   const prazoSelecionado = normalizarTexto(filtroPrazo?.value || "");
@@ -604,6 +723,8 @@ function aplicarFiltros() {
   const atividadesFiltradas = atividadesCache.filter((atividade) => {
     const titulo = normalizarTexto(atividade.titulo);
     const descricao = normalizarTexto(atividade.descricao);
+    const observacoes = normalizarTexto(atividade.observacoes);
+    const tipo = normalizarTexto(atividade.tipo);
     const setoresLista = quebrarSetores(atividade.setor).map(normalizarTexto);
     const prioridade = normalizarTexto(atividade.prioridade);
     const status = normalizarTexto(statusEfetivo(atividade));
@@ -613,7 +734,12 @@ function aplicarFiltros() {
       !termoBusca ||
       titulo.includes(termoBusca) ||
       descricao.includes(termoBusca) ||
+      observacoes.includes(termoBusca) ||
+      tipo.includes(termoBusca) ||
       setoresLista.some((setor) => setor.includes(termoBusca));
+
+    const atendeTipo =
+      !tipoSelecionado || tipo === tipoSelecionado;
 
     const atendePrioridade =
       !prioridadeSelecionada || prioridade === prioridadeSelecionada;
@@ -638,6 +764,7 @@ function aplicarFiltros() {
 
     return (
       atendeBusca &&
+      atendeTipo &&
       atendePrioridade &&
       atendeStatus &&
       atendePrazo &&
@@ -651,6 +778,7 @@ function aplicarFiltros() {
 
 function limparFiltros() {
   if (filtroBusca) filtroBusca.value = "";
+  if (filtroTipo) filtroTipo.value = "";
   if (filtroPrioridade) filtroPrioridade.value = "";
   if (filtroStatus) filtroStatus.value = "";
   if (filtroPrazo) filtroPrazo.value = "";
@@ -730,26 +858,37 @@ tabelaAtividades?.addEventListener("click", async (event) => {
 
   const { acao, id } = botao.dataset;
 
+  const atividade = atividadesCache.find((item) => String(item.id) === String(id));
+
+  if (
+    (acao === "ver-reuniao" ||
+      acao === "ver-observacao" ||
+      acao === "editar" ||
+      acao === "concluir") &&
+    !atividade
+  ) {
+    alert("Atividade não encontrada.");
+    return;
+  }
+
+  if (acao === "ver-reuniao") {
+    const dataTexto = formatarData(atividade.data_reuniao);
+    alert(`Reunião pendente\n\nData: ${dataTexto}`);
+    return;
+  }
+
+  if (acao === "ver-observacao") {
+    const observacaoTexto = atividade.observacoes || "Sem observações.";
+    alert(`Observações\n\n${observacaoTexto}`);
+    return;
+  }
+
   if (acao === "editar") {
-    const atividade = atividadesCache.find((item) => String(item.id) === String(id));
-
-    if (!atividade) {
-      alert("Atividade não encontrada.");
-      return;
-    }
-
     prepararModalEdicao(atividade);
     return;
   }
 
   if (acao === "concluir") {
-    const atividade = atividadesCache.find((item) => String(item.id) === String(id));
-
-    if (!atividade) {
-      alert("Atividade não encontrada.");
-      return;
-    }
-
     const confirmar = confirm("Deseja marcar esta atividade como concluída?");
     if (!confirmar) return;
 
@@ -757,6 +896,8 @@ tabelaAtividades?.addEventListener("click", async (event) => {
       const payload = {
         titulo: atividade.titulo || "",
         descricao: atividade.descricao || "",
+        observacoes: atividade.observacoes || null,
+        tipo: atividade.tipo || null,
         prioridade: atividade.prioridade || null,
         status: "concluída",
         prazo: atividade.prazo || null,
