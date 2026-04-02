@@ -96,58 +96,102 @@
             <input
               type="text"
               id="filtroBusca"
-              placeholder="Digite título, descrição, setor ou tipo"
+              placeholder="Digite título, descrição, setor, responsável ou tipo"
             />
           </div>
 
           <div class="input-group">
-            <label for="filtroTipo">Tipo</label>
-            <select id="filtroTipo">
-              <option value="">Todos</option>
-              <option value="QUALIDADE">Qualidade</option>
-              <option value="DIVERSOS">Diversos</option>
-              <option value="REUNIÃO">Reunião</option>
-            </select>
+            <label>Tipo</label>
+            <div class="multi-filter filtro-dropdown" data-dropdown-root="tipo">
+              <button
+                type="button"
+                class="multi-filter-toggle filtro-dropdown-btn"
+                data-dropdown-trigger
+              >
+                <span>Tipo</span>
+                <span id="labelFiltroTipo" class="filtro-dropdown-summary">Todos</span>
+              </button>
+
+              <div class="multi-filter-menu filtro-dropdown-menu" data-dropdown-menu>
+                <div data-dropdown-options></div>
+              </div>
+            </div>
           </div>
 
           <div class="input-group">
-            <label for="filtroPrioridade">Prioridade</label>
-            <select id="filtroPrioridade">
-              <option value="">Todas</option>
-              <option value="baixa">Baixa</option>
-              <option value="média">Média</option>
-              <option value="alta">Alta</option>
-              <option value="crítica">Crítica</option>
-            </select>
+            <label>Prioridade</label>
+            <div class="multi-filter filtro-dropdown" data-dropdown-root="prioridade">
+              <button
+                type="button"
+                class="multi-filter-toggle filtro-dropdown-btn"
+                data-dropdown-trigger
+              >
+                <span>Prioridade</span>
+                <span id="labelFiltroPrioridade" class="filtro-dropdown-summary">Todas</span>
+              </button>
+
+              <div class="multi-filter-menu filtro-dropdown-menu" data-dropdown-menu>
+                <div data-dropdown-options></div>
+              </div>
+            </div>
           </div>
 
           <div class="input-group">
-            <label for="filtroStatus">Status</label>
-            <select id="filtroStatus">
-              <option value="">Todos</option>
-              <option value="pendente">Pendente</option>
-              <option value="em andamento">Em andamento</option>
-              <option value="atrasado">Atrasado</option>
-              <option value="concluída">Concluída</option>
-            </select>
+            <label>Status</label>
+            <div class="multi-filter filtro-dropdown" data-dropdown-root="status">
+              <button
+                type="button"
+                class="multi-filter-toggle filtro-dropdown-btn"
+                data-dropdown-trigger
+              >
+                <span>Status</span>
+                <span id="labelFiltroStatus" class="filtro-dropdown-summary">Todos</span>
+              </button>
+
+              <div class="multi-filter-menu filtro-dropdown-menu" data-dropdown-menu>
+                <div data-dropdown-options></div>
+              </div>
+            </div>
           </div>
 
           <div class="input-group">
-            <label for="filtroPrazo">Prazo</label>
-            <select id="filtroPrazo">
-              <option value="">Todos</option>
-              <option value="hoje">Vence hoje</option>
-              <option value="sem-prazo">Sem prazo</option>
-              <option value="vencidas">Vencidas</option>
-              <option value="proximas">Próximas</option>
-            </select>
+            <label>Prazo</label>
+            <div class="multi-filter filtro-dropdown" data-dropdown-root="prazo">
+              <button
+                type="button"
+                class="multi-filter-toggle filtro-dropdown-btn"
+                data-dropdown-trigger
+              >
+                <span>Prazo</span>
+                <span id="labelFiltroPrazo" class="filtro-dropdown-summary">Todos</span>
+              </button>
+
+              <div class="multi-filter-menu filtro-dropdown-menu" data-dropdown-menu>
+                <div data-dropdown-options></div>
+              </div>
+            </div>
           </div>
 
           <div class="input-group">
-            <label for="filtroSetor">Setor</label>
-            <select id="filtroSetor">
-              <option value="">Todos</option>
-            </select>
+            <label>Setor</label>
+            <div class="multi-filter filtro-dropdown" data-dropdown-root="setor">
+              <button
+                type="button"
+                class="multi-filter-toggle filtro-dropdown-btn"
+                data-dropdown-trigger
+              >
+                <span>Setor</span>
+                <span id="labelFiltroSetor" class="filtro-dropdown-summary">Todos</span>
+              </button>
+
+              <div
+                class="multi-filter-menu filtro-dropdown-menu"
+                data-dropdown-menu
+                id="menuFiltroSetor"
+              >
+                <div data-dropdown-options></div>
+              </div>
+            </div>
           </div>
 
           <div class="filtros-acoes">
@@ -253,6 +297,13 @@
           <div class="input-group">
             <label for="prazo">Prazo</label>
             <input type="date" id="prazo" />
+          </div>
+
+          <div class="input-group">
+            <label for="responsavelId">Responsável</label>
+            <select id="responsavelId">
+              <option value="">Meu usuário</option>
+            </select>
           </div>
 
           <div class="input-group input-group-full">

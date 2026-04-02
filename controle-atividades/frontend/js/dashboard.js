@@ -26,11 +26,17 @@ const recarregarBtn = document.getElementById("recarregarBtn");
 const limparFiltrosBtn = document.getElementById("limparFiltrosBtn");
 
 const filtroBusca = document.getElementById("filtroBusca");
-const filtroTipo = document.getElementById("filtroTipo");
-const filtroPrioridade = document.getElementById("filtroPrioridade");
-const filtroStatus = document.getElementById("filtroStatus");
-const filtroPrazo = document.getElementById("filtroPrazo");
-const filtroSetor = document.getElementById("filtroSetor");
+
+/*
+  Compatibilidade:
+  - HTML antigo: selects tradicionais
+  - HTML novo: dropdowns com checkboxes
+*/
+const filtroTipoSelect = document.getElementById("filtroTipo");
+const filtroPrioridadeSelect = document.getElementById("filtroPrioridade");
+const filtroStatusSelect = document.getElementById("filtroStatus");
+const filtroPrazoSelect = document.getElementById("filtroPrazo");
+const filtroSetorSelect = document.getElementById("filtroSetor");
 
 const abrirModalBtn = document.getElementById("abrirModalBtn");
 const fecharModalBtn = document.getElementById("fecharModalBtn");
@@ -47,6 +53,7 @@ const tipoInput = document.getElementById("tipo");
 const prioridadeInput = document.getElementById("prioridade");
 const statusInput = document.getElementById("status");
 const prazoInput = document.getElementById("prazo");
+const responsavelInput = document.getElementById("responsavelId");
 
 const setorSelect = document.getElementById("setorSelect");
 const adicionarSetorBtn = document.getElementById("adicionarSetorBtn");
@@ -59,10 +66,27 @@ const botaoSubmitModal = atividadeForm?.querySelector('button[type="submit"]');
 
 let atividadesCache = [];
 let setoresCache = [];
+let usuariosCache = [];
 let setoresSelecionados = [];
 
 let modoEdicao = false;
 let atividadeEditandoId = null;
+
+const filtrosSelecionados = {
+  tipo: [],
+  prioridade: [],
+  status: [],
+  prazo: [],
+  setor: []
+};
+
+const dropdownFilters = {
+  tipo: criarControleDropdown("tipo"),
+  prioridade: criarControleDropdown("prioridade"),
+  status: criarControleDropdown("status"),
+  prazo: criarControleDropdown("prazo"),
+  setor: criarControleDropdown("setor")
+};
 
 if (boasVindas) {
   boasVindas.textContent = usuario?.nome || "Usuário";
@@ -92,23 +116,31 @@ modalOverlay?.addEventListener("click", (event) => {
   }
 });
 
+document.addEventListener("click", (event) => {
+  const clicouDentroDeDropdown = event.target.closest("[data-dropdown-root]");
+  if (!clicouDentroDeDropdown) {
+    fecharTodosDropdowns();
+  }
+});
+
 recarregarBtn?.addEventListener("click", async () => {
+  await carregarUsuarios();
   await carregarSetores();
   await carregarAtividades();
 });
 
 limparFiltrosBtn?.addEventListener("click", limparFiltros);
 
+filtroBusca?.addEventListener("input", aplicarFiltros);
+
 [
-  filtroBusca,
-  filtroTipo,
-  filtroPrioridade,
-  filtroStatus,
-  filtroPrazo,
-  filtroSetor
+  filtroTipoSelect,
+  filtroPrioridadeSelect,
+  filtroStatusSelect,
+  filtroPrazoSelect,
+  filtroSetorSelect
 ].forEach((elemento) => {
   if (!elemento) return;
-  elemento.addEventListener("input", aplicarFiltros);
   elemento.addEventListener("change", aplicarFiltros);
 });
 
@@ -130,6 +162,8 @@ atividadeForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   limparMensagemFormulario();
 
+  const responsavelSelecionado = responsavelInput?.value || usuario?.id || null;
+
   const payload = {
     titulo: tituloInput?.value.trim() || "",
     descricao: descricaoInput?.value.trim() || "",
@@ -139,7 +173,8 @@ atividadeForm?.addEventListener("submit", async (event) => {
     status: statusInput?.value || null,
     prazo: prazoInput?.value || null,
     setor: setoresSelecionados.length ? setoresSelecionados.join(", ") : null,
-    data_reuniao: dataReuniaoInput?.value || null
+    data_reuniao: dataReuniaoInput?.value || null,
+    responsavel_id: responsavelSelecionado
   };
 
   if (!payload.titulo) {
@@ -182,6 +217,128 @@ atividadeForm?.addEventListener("submit", async (event) => {
   }
 });
 
+function criarControleDropdown(chave) {
+  const root =
+    document.querySelector(`[data-dropdown-root="${chave}"]`) ||
+    document.querySelector(`.filtro-dropdown[data-filter="${chave}"]`) ||
+    document.querySelector(`[data-filter-key="${chave}"]`);
+
+  if (!root) {
+    return null;
+  }
+
+  const trigger =
+    root.querySelector("[data-dropdown-trigger]") ||
+    root.querySelector(".filtro-dropdown-btn") ||
+    root.querySelector("button");
+
+  const menu =
+    root.querySelector("[data-dropdown-menu]") ||
+    root.querySelector(".filtro-dropdown-menu");
+
+  const summary =
+    root.querySelector("[data-dropdown-summary]") ||
+    root.querySelector(".filtro-dropdown-summary");
+
+  const optionsWrap =
+    root.querySelector("[data-dropdown-options]") ||
+    root.querySelector(".filtro-dropdown-options");
+
+  if (!trigger || !menu || !optionsWrap) {
+    return null;
+  }
+
+  trigger.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const aberto = root.classList.contains("open");
+    fecharTodosDropdowns();
+    if (!aberto) {
+      root.classList.add("open");
+    }
+  });
+
+  optionsWrap.addEventListener("change", (event) => {
+    const input = event.target.closest('input[type="checkbox"]');
+    if (!input) return;
+
+    const selecionados = Array.from(
+      optionsWrap.querySelectorAll('input[type="checkbox"]:checked')
+    ).map((item) => item.value);
+
+    filtrosSelecionados[chave] = selecionados;
+    atualizarResumoDropdown(chave);
+    aplicarFiltros();
+  });
+
+  return {
+    root,
+    trigger,
+    menu,
+    summary,
+    optionsWrap
+  };
+}
+
+function fecharTodosDropdowns() {
+  Object.values(dropdownFilters).forEach((controle) => {
+    if (controle?.root) {
+      controle.root.classList.remove("open");
+    }
+  });
+}
+
+function atualizarResumoDropdown(chave) {
+  const controle = dropdownFilters[chave];
+  if (!controle?.summary) return;
+
+  const selecionados = filtrosSelecionados[chave] || [];
+  const labelPadraoMap = {
+    tipo: "Todos",
+    prioridade: "Todas",
+    status: "Todos",
+    prazo: "Todos",
+    setor: "Todos"
+  };
+
+  if (!selecionados.length) {
+    controle.summary.textContent = labelPadraoMap[chave] || "Todos";
+    return;
+  }
+
+  if (selecionados.length === 1) {
+    controle.summary.textContent = selecionados[0];
+    return;
+  }
+
+  controle.summary.textContent = `${selecionados.length} selecionados`;
+}
+
+function preencherDropdown(chave, opcoes) {
+  const controle = dropdownFilters[chave];
+  if (!controle?.optionsWrap) return;
+
+  const selecionadosAtuais = filtrosSelecionados[chave] || [];
+  const selecionadosValidos = selecionadosAtuais.filter((valor) =>
+    opcoes.includes(valor)
+  );
+
+  filtrosSelecionados[chave] = selecionadosValidos;
+
+  controle.optionsWrap.innerHTML = opcoes
+    .map((valor) => {
+      const checked = selecionadosValidos.includes(valor) ? "checked" : "";
+      return `
+        <label class="filtro-opcao-item">
+          <input type="checkbox" value="${escaparHtml(valor)}" ${checked} />
+          <span>${escaparHtml(valor)}</span>
+        </label>
+      `;
+    })
+    .join("");
+
+  atualizarResumoDropdown(chave);
+}
+
 function mostrarMensagemFormulario(texto, tipo = "") {
   if (!atividadeMensagem) return;
   atividadeMensagem.textContent = texto;
@@ -206,6 +363,11 @@ function prepararModalNovaAtividade() {
 
   setoresSelecionados = [];
   renderizarSetoresSelecionados();
+
+  if (responsavelInput) {
+    responsavelInput.disabled = false;
+    responsavelInput.value = usuario?.id || "";
+  }
 
   if (tituloInput) tituloInput.disabled = false;
   if (descricaoInput) descricaoInput.disabled = false;
@@ -235,8 +397,19 @@ function prepararModalEdicao(atividade) {
   if (prioridadeInput) prioridadeInput.value = atividade.prioridade || "";
   if (statusInput) statusInput.value = normalizarStatusOriginal(atividade.status);
   if (prazoInput) prazoInput.value = formatarDataParaInput(atividade.prazo);
+
   if (dataReuniaoInput) {
     dataReuniaoInput.value = formatarDataParaInput(atividade.data_reuniao);
+  }
+
+  if (responsavelInput) {
+    responsavelInput.disabled = false;
+    responsavelInput.value =
+      atividade.responsavel_id ||
+      atividade?.responsavel?.id ||
+      atividade.criado_por ||
+      usuario?.id ||
+      "";
   }
 
   setoresSelecionados = quebrarSetores(atividade.setor);
@@ -572,10 +745,6 @@ function atualizarCards(lista) {
 }
 
 function popularFiltroSetor(lista) {
-  if (!filtroSetor) return;
-
-  const valorAtual = filtroSetor.value;
-
   const setoresUnicos = [
     ...new Set(
       lista
@@ -584,16 +753,28 @@ function popularFiltroSetor(lista) {
     )
   ].sort((a, b) => a.localeCompare(b, "pt-BR"));
 
-  filtroSetor.innerHTML = `<option value="">Todos</option>`;
+  if (filtroSetorSelect) {
+    const valorAtual = filtroSetorSelect.value;
+    filtroSetorSelect.innerHTML = `<option value="">Todos</option>`;
 
-  setoresUnicos.forEach((setor) => {
-    const option = document.createElement("option");
-    option.value = setor;
-    option.textContent = setor;
-    filtroSetor.appendChild(option);
-  });
+    setoresUnicos.forEach((setor) => {
+      const option = document.createElement("option");
+      option.value = setor;
+      option.textContent = setor;
+      filtroSetorSelect.appendChild(option);
+    });
 
-  filtroSetor.value = setoresUnicos.includes(valorAtual) ? valorAtual : "";
+    filtroSetorSelect.value = setoresUnicos.includes(valorAtual) ? valorAtual : "";
+  }
+
+  preencherDropdown("setor", setoresUnicos);
+}
+
+function popularDropdownsFixos() {
+  preencherDropdown("tipo", ["QUALIDADE", "DIVERSOS", "REUNIÃO"]);
+  preencherDropdown("prioridade", ["baixa", "média", "alta", "crítica"]);
+  preencherDropdown("status", ["pendente", "em andamento", "atrasado", "concluída"]);
+  preencherDropdown("prazo", ["hoje", "sem-prazo", "vencidas", "proximas"]);
 }
 
 function popularSelectSetores() {
@@ -609,6 +790,26 @@ function popularSelectSetores() {
       option.textContent = setor.nome;
       setorSelect.appendChild(option);
     });
+}
+
+function popularSelectResponsaveis() {
+  if (!responsavelInput) return;
+
+  const valorAtual = responsavelInput.value || usuario?.id || "";
+
+  responsavelInput.innerHTML = `<option value="">Selecione um responsável</option>`;
+
+  usuariosCache
+    .filter((item) => item.ativo !== false)
+    .sort((a, b) => String(a.nome || "").localeCompare(String(b.nome || ""), "pt-BR"))
+    .forEach((item) => {
+      const option = document.createElement("option");
+      option.value = item.id;
+      option.textContent = item.nome || item.username || "Usuário";
+      responsavelInput.appendChild(option);
+    });
+
+  responsavelInput.value = valorAtual || usuario?.id || "";
 }
 
 function renderizarTabela(atividades) {
@@ -630,8 +831,9 @@ function renderizarTabela(atividades) {
       const prioridade = atividade.prioridade || "-";
 
       const responsavelNome =
-        atividade?.criador?.nome ||
         atividade?.responsavel?.nome ||
+        atividade?.criador?.nome ||
+        usuariosCache.find((u) => String(u.id) === String(atividade.responsavel_id))?.nome ||
         usuario?.nome ||
         "-";
 
@@ -710,13 +912,33 @@ function renderizarTabela(atividades) {
     .join("");
 }
 
+function obterValoresFiltro(chave) {
+  const dropdownTemValor = Array.isArray(filtrosSelecionados[chave]) && filtrosSelecionados[chave].length;
+  if (dropdownTemValor) {
+    return filtrosSelecionados[chave].map(normalizarTexto);
+  }
+
+  const mapaSelect = {
+    tipo: filtroTipoSelect,
+    prioridade: filtroPrioridadeSelect,
+    status: filtroStatusSelect,
+    prazo: filtroPrazoSelect,
+    setor: filtroSetorSelect
+  };
+
+  const select = mapaSelect[chave];
+  if (!select?.value) return [];
+
+  return [normalizarTexto(select.value)];
+}
+
 function aplicarFiltros() {
   const termoBusca = normalizarTexto(filtroBusca?.value || "");
-  const tipoSelecionado = normalizarTexto(filtroTipo?.value || "");
-  const prioridadeSelecionada = normalizarTexto(filtroPrioridade?.value || "");
-  const statusSelecionado = normalizarTexto(filtroStatus?.value || "");
-  const prazoSelecionado = normalizarTexto(filtroPrazo?.value || "");
-  const setorSelecionado = normalizarTexto(filtroSetor?.value || "");
+  const tiposSelecionados = obterValoresFiltro("tipo");
+  const prioridadesSelecionadas = obterValoresFiltro("prioridade");
+  const statusSelecionados = obterValoresFiltro("status");
+  const prazosSelecionados = obterValoresFiltro("prazo");
+  const setoresSelecionadosFiltro = obterValoresFiltro("setor");
 
   const hoje = obterHojeSemHora();
 
@@ -739,27 +961,40 @@ function aplicarFiltros() {
       setoresLista.some((setor) => setor.includes(termoBusca));
 
     const atendeTipo =
-      !tipoSelecionado || tipo === tipoSelecionado;
+      !tiposSelecionados.length || tiposSelecionados.includes(tipo);
 
     const atendePrioridade =
-      !prioridadeSelecionada || prioridade === prioridadeSelecionada;
+      !prioridadesSelecionadas.length || prioridadesSelecionadas.includes(prioridade);
 
     const atendeStatus =
-      !statusSelecionado || status === statusSelecionado;
+      !statusSelecionados.length || statusSelecionados.includes(status);
 
     const atendeSetor =
-      !setorSelecionado || setoresLista.includes(setorSelecionado);
+      !setoresSelecionadosFiltro.length ||
+      setoresSelecionadosFiltro.some((setor) => setoresLista.includes(setor));
 
     let atendePrazo = true;
 
-    if (prazoSelecionado === "sem-prazo") {
-      atendePrazo = !prazo;
-    } else if (prazoSelecionado === "hoje") {
-      atendePrazo = !!prazo && prazo.getTime() === hoje.getTime();
-    } else if (prazoSelecionado === "vencidas") {
-      atendePrazo = !!prazo && prazo < hoje;
-    } else if (prazoSelecionado === "proximas") {
-      atendePrazo = !!prazo && prazo >= hoje;
+    if (prazosSelecionados.length) {
+      atendePrazo = prazosSelecionados.some((prazoSelecionado) => {
+        if (prazoSelecionado === "sem-prazo") {
+          return !prazo;
+        }
+
+        if (prazoSelecionado === "hoje") {
+          return !!prazo && prazo.getTime() === hoje.getTime();
+        }
+
+        if (prazoSelecionado === "vencidas") {
+          return !!prazo && prazo < hoje;
+        }
+
+        if (prazoSelecionado === "proximas") {
+          return !!prazo && prazo >= hoje;
+        }
+
+        return true;
+      });
     }
 
     return (
@@ -778,12 +1013,66 @@ function aplicarFiltros() {
 
 function limparFiltros() {
   if (filtroBusca) filtroBusca.value = "";
-  if (filtroTipo) filtroTipo.value = "";
-  if (filtroPrioridade) filtroPrioridade.value = "";
-  if (filtroStatus) filtroStatus.value = "";
-  if (filtroPrazo) filtroPrazo.value = "";
-  if (filtroSetor) filtroSetor.value = "";
+
+  if (filtroTipoSelect) filtroTipoSelect.value = "";
+  if (filtroPrioridadeSelect) filtroPrioridadeSelect.value = "";
+  if (filtroStatusSelect) filtroStatusSelect.value = "";
+  if (filtroPrazoSelect) filtroPrazoSelect.value = "";
+  if (filtroSetorSelect) filtroSetorSelect.value = "";
+
+  Object.keys(filtrosSelecionados).forEach((chave) => {
+    filtrosSelecionados[chave] = [];
+    atualizarResumoDropdown(chave);
+  });
+
+  Object.values(dropdownFilters).forEach((controle) => {
+    if (!controle?.optionsWrap) return;
+    controle.optionsWrap
+      .querySelectorAll('input[type="checkbox"]')
+      .forEach((input) => {
+        input.checked = false;
+      });
+  });
+
   aplicarFiltros();
+}
+
+async function requisicaoJsonComFallback(rotas) {
+  for (const rota of rotas) {
+    try {
+      const resposta = await fetch(rota, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      const dados = await resposta.json().catch(() => null);
+
+      if (resposta.ok) {
+        return { ok: true, dados };
+      }
+    } catch (error) {
+      // tenta a próxima
+    }
+  }
+
+  return { ok: false, dados: null };
+}
+
+async function carregarUsuarios() {
+  const resultado = await requisicaoJsonComFallback([
+    `${API_BASE_URL}/usuarios/usuarios`,
+    `${API_BASE_URL}/usuarios`
+  ]);
+
+  if (!resultado.ok) {
+    usuariosCache = [];
+    popularSelectResponsaveis();
+    return;
+  }
+
+  usuariosCache = Array.isArray(resultado.dados) ? resultado.dados : [];
+  popularSelectResponsaveis();
 }
 
 async function carregarSetores() {
@@ -857,7 +1146,6 @@ tabelaAtividades?.addEventListener("click", async (event) => {
   if (!botao) return;
 
   const { acao, id } = botao.dataset;
-
   const atividade = atividadesCache.find((item) => String(item.id) === String(id));
 
   if (
@@ -902,7 +1190,12 @@ tabelaAtividades?.addEventListener("click", async (event) => {
         status: "concluída",
         prazo: atividade.prazo || null,
         setor: atividade.setor || null,
-        data_reuniao: atividade.data_reuniao || null
+        data_reuniao: atividade.data_reuniao || null,
+        responsavel_id:
+          atividade.responsavel_id ||
+          atividade?.responsavel?.id ||
+          usuario?.id ||
+          null
       };
 
       const resposta = await fetch(`${API_BASE_URL}/atividades/${id}`, {
@@ -961,6 +1254,8 @@ tabelaAtividades?.addEventListener("click", async (event) => {
 });
 
 async function iniciarPagina() {
+  popularDropdownsFixos();
+  await carregarUsuarios();
   await carregarSetores();
   await carregarAtividades();
 }

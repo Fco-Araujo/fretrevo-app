@@ -12,36 +12,44 @@ export async function criarAtividade(req, res) {
       origem,
       observacoes,
       setor,
-      data_reuniao
+      data_reuniao,
+      responsavel_id
     } = req.body;
 
     const usuario = req.usuario;
 
-    if (!titulo) {
+    if (!titulo || !String(titulo).trim()) {
       return res.status(400).json({ erro: "Título é obrigatório." });
     }
+
+    const responsavelFinal = responsavel_id || usuario.id;
 
     const { data, error } = await supabase
       .from("atividades")
       .insert([
         {
-          titulo,
-          descricao,
-          prioridade,
-          status,
-          prazo,
-          tipo,
-          origem,
-          observacoes,
-          setor,
-          data_reuniao,
+          titulo: String(titulo).trim(),
+          descricao: descricao ?? null,
+          prioridade: prioridade ?? null,
+          status: status ?? "pendente",
+          prazo: prazo ?? null,
+          tipo: tipo ?? null,
+          origem: origem ?? null,
+          observacoes: observacoes ?? null,
+          setor: setor ?? null,
+          data_reuniao: data_reuniao ?? null,
           criado_por: usuario.id,
-          responsavel_id: usuario.id
+          responsavel_id: responsavelFinal
         }
       ])
       .select(`
         *,
         criador:usuarios!atividades_criado_por_fkey (
+          id,
+          nome,
+          username
+        ),
+        responsavel:usuarios!atividades_responsavel_id_fkey (
           id,
           nome,
           username
@@ -69,6 +77,11 @@ export async function listarAtividades(req, res) {
           id,
           nome,
           username
+        ),
+        responsavel:usuarios!atividades_responsavel_id_fkey (
+          id,
+          nome,
+          username
         )
       `)
       .order("data_criacao", { ascending: false });
@@ -93,6 +106,11 @@ export async function buscarAtividadePorId(req, res) {
       .select(`
         *,
         criador:usuarios!atividades_criado_por_fkey (
+          id,
+          nome,
+          username
+        ),
+        responsavel:usuarios!atividades_responsavel_id_fkey (
           id,
           nome,
           username
@@ -127,7 +145,8 @@ export async function atualizarAtividade(req, res) {
       origem,
       observacoes,
       setor,
-      data_reuniao
+      data_reuniao,
+      responsavel_id
     } = req.body;
 
     const { data: atividade, error: erroBusca } = await supabase
@@ -166,6 +185,7 @@ export async function atualizarAtividade(req, res) {
         origem: origem ?? atividade.origem,
         observacoes: observacoes ?? atividade.observacoes,
         setor: setor ?? atividade.setor,
+        responsavel_id: responsavel_id ?? atividade.responsavel_id,
         data_reuniao:
           data_reuniao !== undefined ? data_reuniao : atividade.data_reuniao
       };
@@ -173,16 +193,25 @@ export async function atualizarAtividade(req, res) {
       dadosAtualizados = {
         prioridade: prioridade ?? atividade.prioridade,
         status: status ?? atividade.status,
+        tipo: tipo ?? atividade.tipo,
+        observacoes: observacoes ?? atividade.observacoes,
         setor: setor ?? atividade.setor,
+        responsavel_id: responsavel_id ?? atividade.responsavel_id,
         data_reuniao:
           data_reuniao !== undefined ? data_reuniao : atividade.data_reuniao
       };
     }
 
-    const statusFinal = dadosAtualizados.status;
+    const statusFinal = String(dadosAtualizados.status || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase();
 
-    if (statusFinal === "concluída" || statusFinal === "concluida") {
+    if (statusFinal === "concluida") {
       dadosAtualizados.data_conclusao = new Date().toISOString();
+    } else {
+      dadosAtualizados.data_conclusao = null;
     }
 
     const { data, error } = await supabase
@@ -192,6 +221,11 @@ export async function atualizarAtividade(req, res) {
       .select(`
         *,
         criador:usuarios!atividades_criado_por_fkey (
+          id,
+          nome,
+          username
+        ),
+        responsavel:usuarios!atividades_responsavel_id_fkey (
           id,
           nome,
           username
