@@ -11,12 +11,10 @@ function validarAdmin(req, res) {
 
 export async function listarUsuarios(req, res) {
   try {
-    if (!validarAdmin(req, res)) return;
-
     const { data, error } = await supabase
       .from("usuarios")
       .select("id, nome, username, perfil, ativo, criado_em")
-      .order("criado_em", { ascending: false });
+      .order("nome", { ascending: true });
 
     if (error) {
       return res.status(500).json({ erro: error.message });
@@ -95,7 +93,10 @@ export async function atualizarUsuario(req, res) {
       ativo: typeof ativo === "boolean" ? ativo : usuarioAtual.ativo
     };
 
-    if (dadosAtualizados.perfil && !["admin", "comum"].includes(dadosAtualizados.perfil)) {
+    if (
+      dadosAtualizados.perfil &&
+      !["admin", "comum"].includes(dadosAtualizados.perfil)
+    ) {
       return res.status(400).json({ erro: "Perfil inválido." });
     }
 

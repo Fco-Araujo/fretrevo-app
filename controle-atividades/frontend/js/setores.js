@@ -8,11 +8,6 @@ if (!token) {
   window.location.href = "./index.html";
 }
 
-if (!ehAdmin) {
-  alert("Acesso permitido apenas para administradores.");
-  window.location.href = "./dashboard.html";
-}
-
 const boasVindas = document.getElementById("boasVindas");
 const menuUsuariosLink = document.getElementById("menuUsuariosLink");
 const menuSetoresLink = document.getElementById("menuSetoresLink");
@@ -30,10 +25,17 @@ let setoresCache = [];
 let modoEdicao = false;
 let setorEditandoId = null;
 
-boasVindas.textContent = usuario?.nome || "Usuário";
+if (boasVindas) {
+  boasVindas.textContent = usuario?.nome || "Usuário";
+}
 
-if (menuUsuariosLink) menuUsuariosLink.classList.remove("hidden");
-if (menuSetoresLink) menuSetoresLink.classList.remove("hidden");
+if (ehAdmin && menuUsuariosLink) {
+  menuUsuariosLink.classList.remove("hidden");
+}
+
+if (menuSetoresLink) {
+  menuSetoresLink.classList.remove("hidden");
+}
 
 logoutBtn?.addEventListener("click", () => {
   localStorage.removeItem("token");
@@ -45,8 +47,8 @@ setorForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   limparMensagem();
 
-  const nome = nomeSetorInput.value.trim();
-  const ativo = ativoSetorInput.value === "true";
+  const nome = nomeSetorInput?.value.trim() || "";
+  const ativo = ativoSetorInput?.value === "true";
 
   if (!nome) {
     mostrarMensagem("Informe o nome do setor.", "erro");
@@ -77,7 +79,9 @@ setorForm?.addEventListener("submit", async (event) => {
     }
 
     mostrarMensagem(
-      modoEdicao ? "Setor atualizado com sucesso." : "Setor cadastrado com sucesso.",
+      modoEdicao
+        ? "Setor atualizado com sucesso."
+        : "Setor cadastrado com sucesso.",
       "sucesso"
     );
 
@@ -106,12 +110,13 @@ tabelaSetores?.addEventListener("click", (event) => {
     modoEdicao = true;
     setorEditandoId = setor.id;
 
-    nomeSetorInput.value = setor.nome || "";
-    ativoSetorInput.value = String(setor.ativo);
+    if (nomeSetorInput) nomeSetorInput.value = setor.nome || "";
+    if (ativoSetorInput) ativoSetorInput.value = String(setor.ativo);
 
-    salvarSetorBtn.textContent = "Salvar alterações";
-    cancelarEdicaoSetorBtn.classList.remove("hidden");
+    if (salvarSetorBtn) salvarSetorBtn.textContent = "Salvar alterações";
+    cancelarEdicaoSetorBtn?.classList.remove("hidden");
     limparMensagem();
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 });
@@ -131,10 +136,10 @@ function limparMensagem() {
 function resetarFormulario() {
   modoEdicao = false;
   setorEditandoId = null;
-  setorForm.reset();
-  ativoSetorInput.value = "true";
-  salvarSetorBtn.textContent = "Salvar setor";
-  cancelarEdicaoSetorBtn.classList.add("hidden");
+  setorForm?.reset();
+  if (ativoSetorInput) ativoSetorInput.value = "true";
+  if (salvarSetorBtn) salvarSetorBtn.textContent = "Salvar setor";
+  cancelarEdicaoSetorBtn?.classList.add("hidden");
 }
 
 function formatarData(data) {
@@ -156,6 +161,8 @@ function escaparHtml(valor = "") {
 }
 
 function renderizarSetores(setores) {
+  if (!tabelaSetores) return;
+
   if (!setores.length) {
     tabelaSetores.innerHTML = `
       <tr>
@@ -201,11 +208,13 @@ function renderizarSetores(setores) {
 }
 
 async function carregarSetores() {
-  tabelaSetores.innerHTML = `
-    <tr>
-      <td colspan="4" class="empty-state">Carregando setores.</td>
-    </tr>
-  `;
+  if (tabelaSetores) {
+    tabelaSetores.innerHTML = `
+      <tr>
+        <td colspan="4" class="empty-state">Carregando setores.</td>
+      </tr>
+    `;
+  }
 
   try {
     const resposta = await fetch(`${API_BASE_URL}/setores`, {
@@ -217,24 +226,28 @@ async function carregarSetores() {
     const dados = await resposta.json();
 
     if (!resposta.ok) {
-      tabelaSetores.innerHTML = `
-        <tr>
-          <td colspan="4" class="empty-state">
-            ${escaparHtml(dados.erro || "Erro ao carregar setores.")}
-          </td>
-        </tr>
-      `;
+      if (tabelaSetores) {
+        tabelaSetores.innerHTML = `
+          <tr>
+            <td colspan="4" class="empty-state">
+              ${escaparHtml(dados.erro || "Erro ao carregar setores.")}
+            </td>
+          </tr>
+        `;
+      }
       return;
     }
 
     setoresCache = Array.isArray(dados) ? dados : [];
     renderizarSetores(setoresCache);
   } catch (error) {
-    tabelaSetores.innerHTML = `
-      <tr>
-        <td colspan="4" class="empty-state">Erro ao conectar com o servidor.</td>
-      </tr>
-    `;
+    if (tabelaSetores) {
+      tabelaSetores.innerHTML = `
+        <tr>
+          <td colspan="4" class="empty-state">Erro ao conectar com o servidor.</td>
+        </tr>
+      `;
+    }
   }
 }
 

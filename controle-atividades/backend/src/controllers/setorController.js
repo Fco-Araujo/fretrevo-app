@@ -1,11 +1,7 @@
 import { supabase } from "../config/supabase.js";
 
-function validarAdmin(req, res) {
-  if (req.usuario.perfil !== "admin") {
-    res.status(403).json({ erro: "Acesso negado." });
-    return false;
-  }
-  return true;
+function normalizarNomeSetor(nome) {
+  return String(nome || "").trim();
 }
 
 export async function listarSetores(req, res) {
@@ -28,21 +24,23 @@ export async function listarSetores(req, res) {
 
 export async function criarSetor(req, res) {
   try {
-    if (!validarAdmin(req, res)) return;
-
     const { nome } = req.body;
 
-    if (!nome || !nome.trim()) {
+    const nomeLimpo = normalizarNomeSetor(nome);
+
+    if (!nomeLimpo) {
       return res.status(400).json({ erro: "Nome do setor é obrigatório." });
     }
 
-    const nomeLimpo = nome.trim();
-
-    const { data: existente } = await supabase
+    const { data: existente, error: erroExistente } = await supabase
       .from("setores")
-      .select("id")
+      .select("id, nome")
       .ilike("nome", nomeLimpo)
       .maybeSingle();
+
+    if (erroExistente) {
+      return res.status(500).json({ erro: erroExistente.message });
+    }
 
     if (existente) {
       return res.status(400).json({ erro: "Já existe um setor com esse nome." });
@@ -72,8 +70,6 @@ export async function criarSetor(req, res) {
 
 export async function atualizarSetor(req, res) {
   try {
-    if (!validarAdmin(req, res)) return;
-
     const { id } = req.params;
     const { nome, ativo } = req.body;
 
@@ -87,18 +83,24 @@ export async function atualizarSetor(req, res) {
       return res.status(404).json({ erro: "Setor não encontrado." });
     }
 
-    const nomeFinal = nome?.trim() ?? setorAtual.nome;
+    const nomeFinal = nome !== undefined
+      ? normalizarNomeSetor(nome)
+      : setorAtual.nome;
 
     if (!nomeFinal) {
       return res.status(400).json({ erro: "Nome do setor é obrigatório." });
     }
 
-    const { data: duplicado } = await supabase
+    const { data: duplicado, error: erroDuplicado } = await supabase
       .from("setores")
       .select("id")
       .ilike("nome", nomeFinal)
       .neq("id", id)
       .maybeSingle();
+
+    if (erroDuplicado) {
+      return res.status(500).json({ erro: erroDuplicado.message });
+    }
 
     if (duplicado) {
       return res.status(400).json({ erro: "Já existe um setor com esse nome." });
