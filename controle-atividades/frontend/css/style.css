@@ -1991,3 +1991,287 @@ a {
 .filtro-dropdown-menu::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
 }
+
+/* =========================
+   INDICADORES - FILTROS MULTISELECT
+   ========================= */
+
+.indicadores-filtros-grid {
+  grid-template-columns: repeat(5, minmax(160px, 1fr));
+}
+
+.indicadores-filtros-grid .input-group {
+  position: relative;
+}
+
+.indicadores-filtros-grid .filtro-dropdown,
+.indicadores-filtros-grid .multi-filter {
+  position: relative;
+  width: 100%;
+}
+
+.indicadores-filtros-grid .filtro-dropdown-btn,
+.indicadores-filtros-grid .multi-filter-toggle {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.indicadores-filtros-grid .filtro-dropdown-btn:hover,
+.indicadores-filtros-grid .multi-filter-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.indicadores-filtros-grid .filtro-dropdown.open .filtro-dropdown-btn,
+.indicadores-filtros-grid .multi-filter.open .multi-filter-toggle {
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
+}
+
+.indicadores-filtros-grid .filtro-dropdown-summary {
+  margin-left: auto;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.indicadores-filtros-grid .filtro-dropdown-btn::after,
+.indicadores-filtros-grid .multi-filter-toggle::after {
+  content: "▾";
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.indicadores-filtros-grid .filtro-dropdown.open .filtro-dropdown-btn::after,
+.indicadores-filtros-grid .multi-filter.open .multi-filter-toggle::after {
+  transform: rotate(180deg);
+}
+
+.indicadores-filtros-grid .filtro-dropdown-menu,
+.indicadores-filtros-grid .multi-filter-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  min-width: 240px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #0b1a33;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  z-index: 9999;
+  display: none;
+}
+
+.indicadores-filtros-grid .filtro-dropdown.open .filtro-dropdown-menu,
+.indicadores-filtros-grid .multi-filter.open .multi-filter-menu {
+  display: block;
+}
+
+.indicadores-filtros-grid [data-dropdown-options] {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.indicadores-filtros-grid .filtro-opcao-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.indicadores-filtros-grid .filtro-opcao-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.indicadores-filtros-grid .filtro-opcao-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: #2f7df6;
+}
+
+.indicadores-filtros-grid .filtro-opcao-item span {
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.indicadores-filtros-grid .filtro-opcao-item:has(input:checked) {
+  background: #2f7df6;
+}
+
+.indicadores-filtros-grid .filtro-dropdown-menu::-webkit-scrollbar,
+.indicadores-filtros-grid .multi-filter-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.indicadores-filtros-grid .filtro-dropdown-menu::-webkit-scrollbar-thumb,
+.indicadores-filtros-grid .multi-filter-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+
+/* =========================
+   INDICADORES - RANKING COM PILHA
+   ========================= */
+
+.ranking-item-prod {
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) minmax(180px, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+}
+
+.ranking-info {
+  min-width: 0;
+}
+
+.ranking-stack-area {
+  width: 100%;
+}
+
+.ranking-mini-stack {
+  width: 100%;
+  height: 18px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+}
+
+.stack-segment {
+  height: 100%;
+  display: block;
+}
+
+.stack-segment.verde {
+  background: #22c55e;
+}
+
+.stack-segment.laranja {
+  background: #f59e0b;
+}
+
+.stack-segment.vermelho {
+  background: #ef4444;
+}
+
+.resumo-status-lista {
+  gap: 12px;
+}
+
+.resumo-status-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.resumo-status-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.resumo-status-left strong {
+  font-size: 14px;
+  color: #f8fafc;
+}
+
+.resumo-status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.resumo-status-dot.verde {
+  background: #22c55e;
+}
+
+.resumo-status-dot.laranja {
+  background: #f59e0b;
+}
+
+.resumo-status-dot.vermelho {
+  background: #ef4444;
+}
+
+.ranking-badge.resumo {
+  min-width: 42px;
+}
+
+/* =========================
+   RESPONSIVO
+   ========================= */
+
+@media (max-width: 1200px) {
+  .indicadores-filtros-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ranking-item-prod {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 860px) {
+  .indicadores-filtros-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .indicadores-filtros-grid .filtro-dropdown-menu,
+  .indicadores-filtros-grid .multi-filter-menu {
+    min-width: 100%;
+    width: 100%;
+  }
+}
+.stack-segment {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.stack-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* quando a barra for muito pequena, o texto some para não ficar apertado */
+.stack-segment[style*="width:0%"] .stack-value {
+  display: none;
+}

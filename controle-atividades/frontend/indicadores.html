@@ -16,8 +16,8 @@
       <div class="sidebar-top">
         <div class="logo-area">
           <div class="logo-icon">CA</div>
-          <div>
-            <h2>Username<h2>
+          <div class="sidebar-user-box">
+            <strong id="boasVindas">Usuário</strong>
           </div>
         </div>
 
@@ -27,6 +27,7 @@
           <a href="./prazos.html" class="nav-link">Atrasos</a>
           <a href="./usuarios.html" id="menuUsuariosLink" class="nav-link hidden">Usuários</a>
           <a href="./setores.html" id="menuSetoresLink" class="nav-link">Setores</a>
+        </nav>
       </div>
 
       <div class="sidebar-bottom">
@@ -43,47 +44,80 @@
           </div>
         </div>
 
-        <div class="filtros-grid">
+        <div class="filtros-grid indicadores-filtros-grid">
           <div class="input-group">
-            <label for="filtroStatus">Status</label>
-            <select id="filtroStatus">
-              <option value="">Todos</option>
-              <option value="pendente">Pendente</option>
-              <option value="em andamento">Em andamento</option>
-              <option value="concluída">Concluída</option>
-            </select>
+            <label>Status</label>
+            <div class="multi-filter filtro-dropdown" data-dropdown-root="statusIndicadores">
+              <button
+                type="button"
+                class="multi-filter-toggle filtro-dropdown-btn"
+                data-dropdown-trigger
+              >
+                <span>Status</span>
+                <span class="filtro-dropdown-summary" data-dropdown-summary>Todos</span>
+              </button>
+
+              <div class="multi-filter-menu filtro-dropdown-menu" data-dropdown-menu>
+                <div data-dropdown-options></div>
+              </div>
+            </div>
           </div>
 
           <div class="input-group">
-            <label for="filtroPrioridade">Prioridade</label>
-            <select id="filtroPrioridade">
-              <option value="">Todas</option>
-              <option value="baixa">Baixa</option>
-              <option value="média">Média</option>
-              <option value="alta">Alta</option>
-              <option value="crítica">Crítica</option>
-            </select>
+            <label>Prioridade</label>
+            <div class="multi-filter filtro-dropdown" data-dropdown-root="prioridadeIndicadores">
+              <button
+                type="button"
+                class="multi-filter-toggle filtro-dropdown-btn"
+                data-dropdown-trigger
+              >
+                <span>Prioridade</span>
+                <span class="filtro-dropdown-summary" data-dropdown-summary>Todas</span>
+              </button>
+
+              <div class="multi-filter-menu filtro-dropdown-menu" data-dropdown-menu>
+                <div data-dropdown-options></div>
+              </div>
+            </div>
           </div>
 
           <div class="input-group">
-            <label for="filtroCriador">Criado por</label>
-            <select id="filtroCriador">
-              <option value="">Todos</option>
-            </select>
+            <label>Responsável</label>
+            <div class="multi-filter filtro-dropdown" data-dropdown-root="criadorIndicadores">
+              <button
+                type="button"
+                class="multi-filter-toggle filtro-dropdown-btn"
+                data-dropdown-trigger
+              >
+                <span>Responsável</span>
+                <span class="filtro-dropdown-summary" data-dropdown-summary>Todos</span>
+              </button>
+
+              <div class="multi-filter-menu filtro-dropdown-menu" data-dropdown-menu>
+                <div data-dropdown-options></div>
+              </div>
+            </div>
           </div>
 
           <div class="input-group">
-            <label for="filtroPeriodo">Período</label>
-            <select id="filtroPeriodo">
-              <option value="">Tudo</option>
-              <option value="7">Últimos 7 dias</option>
-              <option value="30">Últimos 30 dias</option>
-              <option value="90">Últimos 90 dias</option>
-            </select>
+            <label>Período</label>
+            <div class="multi-filter filtro-dropdown" data-dropdown-root="periodoIndicadores">
+              <button
+                type="button"
+                class="multi-filter-toggle filtro-dropdown-btn"
+                data-dropdown-trigger
+              >
+                <span>Período</span>
+                <span class="filtro-dropdown-summary" data-dropdown-summary>Todos</span>
+              </button>
+
+              <div class="multi-filter-menu filtro-dropdown-menu" data-dropdown-menu>
+                <div data-dropdown-options></div>
+              </div>
+            </div>
           </div>
 
           <div class="filtros-acoes">
-            <button id="btnAplicarFiltros" class="btn btn-primary" type="button">Aplicar</button>
             <button id="btnLimparFiltros" class="btn btn-outline" type="button">Limpar</button>
           </div>
         </div>
@@ -98,10 +132,17 @@
         </article>
 
         <article class="stat-card stat-card-indicador">
-          <span class="stat-label">% Pendentes</span>
+          <span class="stat-label">% Em aberto</span>
           <strong id="cardPctPendentes">0%</strong>
-          <span id="cardQtdPendentes" class="stat-aux">0 atividades pendentes</span>
-          <span class="card-trend neutro">Em aberto</span>
+          <span id="cardQtdPendentes" class="stat-aux">0 atividades em aberto</span>
+          <span class="card-trend neutro">Pendentes e em andamento</span>
+        </article>
+
+        <article class="stat-card stat-card-indicador">
+          <span class="stat-label">% Atrasadas</span>
+          <strong id="cardAtrasadasPct">0%</strong>
+          <span id="cardQtdAtrasadas" class="stat-aux">0 atividades atrasadas</span>
+          <span class="card-trend alerta">Exigem atenção</span>
         </article>
 
         <article class="stat-card stat-card-indicador">
@@ -109,13 +150,6 @@
           <strong id="cardPctNoPrazo">0%</strong>
           <span id="cardQtdNoPrazo" class="stat-aux">0 atividades no prazo</span>
           <span id="cardTendenciaPrazo" class="card-trend">-</span>
-        </article>
-
-        <article class="stat-card stat-card-indicador">
-          <span class="stat-label">Atrasadas</span>
-          <strong id="cardAtrasadas">0</strong>
-          <span id="cardQtdAtrasadas" class="stat-aux">0 atividades atrasadas</span>
-          <span class="card-trend alerta">Exigem atenção</span>
         </article>
       </section>
 
@@ -136,7 +170,7 @@
           <div class="panel-header">
             <div>
               <h2>Status das atividades</h2>
-              <p>Distribuição atual</p>
+              <p>Concluídas, em aberto e atrasadas</p>
             </div>
           </div>
           <div class="chart-box rosca-box">
@@ -161,12 +195,38 @@
         <article class="panel">
           <div class="panel-header">
             <div>
+              <h2>Quantidade de atividades por setor</h2>
+              <p>Total agrupado por setor</p>
+            </div>
+          </div>
+          <div class="chart-box">
+            <canvas id="graficoSetor"></canvas>
+          </div>
+        </article>
+      </section>
+
+      <section class="indicadores-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
               <h2>Usuários com mais atrasos</h2>
-              <p>Top atrasos por criador</p>
+              <p>Top atrasos por responsável</p>
             </div>
           </div>
           <div class="chart-box">
             <canvas id="graficoAtrasosUsuarios"></canvas>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>Resumo de status</h2>
+              <p>Comparativo geral das atividades</p>
+            </div>
+          </div>
+          <div class="ranking-lista resumo-status-lista" id="resumoStatusLista">
+            <div class="empty-state-bloco">Carregando resumo.</div>
           </div>
         </article>
       </section>
